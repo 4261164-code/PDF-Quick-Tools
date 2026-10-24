@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from './components/common/Header';
 import { Footer } from './components/common/Footer';
+import { Breadcrumbs } from './components/common/Breadcrumbs';
 import { HomePage } from './components/home/HomePage';
 import { MergeTool } from './components/tools/MergeTool';
 import { SplitTool } from './components/tools/SplitTool';
@@ -242,6 +243,7 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAFA] text-[#0F172A]">
       <Header currentPath={currentPath} navigate={navigate} />
+      <Breadcrumbs currentPath={currentPath} navigate={navigate} />
       <main className="flex-1">
         {renderContent()}
       </main>

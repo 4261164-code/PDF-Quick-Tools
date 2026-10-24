@@ -7,7 +7,7 @@ import {
   FileOutput,
   RotateCw,
   ShieldCheck,
-  Zap,
+  Cpu,
   Lock,
   ArrowRight,
   BookOpen,
@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { AdsterraPlacement } from '../common/AdsterraPlacement';
 import { LeadCapture } from '../common/LeadCapture';
+import { FAQSection } from '../common/FAQSection';
 
 interface HomeProps {
   navigate: (path: string) => void;
@@ -78,9 +79,6 @@ export const HomePage: React.FC<HomeProps> = ({ navigate }) => {
     <div className="space-y-24 pb-24 overflow-hidden">
       {/* Editorial Hero Section */}
       <section className="relative pt-20 sm:pt-32 px-4 sm:px-6 max-w-7xl mx-auto overflow-hidden">
-        {/* Abstract Background Element */}
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-brand-primary/5 rounded-full blur-3xl pointer-events-none" />
-        
         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-7 space-y-8">
             <div className="inline-flex items-center gap-2.5 text-[11px] font-black uppercase tracking-[0.2em] text-text-secondary bg-surface-main px-4 py-2 rounded-full border border-border-subtle shadow-sm">
@@ -246,7 +244,7 @@ export const HomePage: React.FC<HomeProps> = ({ navigate }) => {
                 desc: "Every operation is executed in a virtual client-side container. Your original data remains untouched and uncopied."
               },
               {
-                icon: Zap,
+                icon: Cpu,
                 title: "Instant Execution",
                 desc: "By removing the network upload phase, we process large PDF documents at the speed of your device's local CPU."
               },
@@ -356,6 +354,9 @@ export const HomePage: React.FC<HomeProps> = ({ navigate }) => {
           ))}
         </div>
       </section>
+
+      {/* Frequently Asked Questions */}
+      <FAQSection />
 
       {/* Subscription & Footer Resources */}
       <section className="max-w-4xl mx-auto px-4 sm:px-6">

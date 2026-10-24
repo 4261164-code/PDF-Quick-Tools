@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, CheckCircle2, Download, ArrowRight, ShieldCheck, Sparkles, FileText } from 'lucide-react';
+import { Mail, CheckCircle2, Download, ArrowRight, ShieldCheck, FileText } from 'lucide-react';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { trackEvent } from '../../utils/analytics';
 
@@ -171,7 +171,7 @@ export const LeadCapture: React.FC<LeadCaptureProps> = ({
         {!isSuccess ? (
           <>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-red-50 text-red-700 text-xs font-semibold mb-4 border border-red-200">
-              <Sparkles className="w-3.5 h-3.5 text-red-700" />
+              <FileText className="w-3.5 h-3.5 text-red-700" />
               <span>Free Download</span>
             </div>
 

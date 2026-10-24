@@ -1,5 +1,5 @@
 import React from 'react';
-import { Lock, Cpu, Globe, ArrowUpRight, ShieldCheck, Zap, Heart } from 'lucide-react';
+import { Lock, Cpu, Globe, ArrowUpRight, ShieldCheck } from 'lucide-react';
 import { Logo } from './Logo';
 
 interface FooterProps {
@@ -31,7 +31,7 @@ export const Footer: React.FC<FooterProps> = ({ navigate }) => {
           </div>
           <div className="space-y-4">
             <div className="w-10 h-10 rounded-xl bg-brand-primary/5 text-brand-primary flex items-center justify-center">
-              <Zap className="w-5 h-5" />
+              <Cpu className="w-5 h-5" />
             </div>
             <div>
               <h4 className="text-sm font-black uppercase tracking-widest text-text-primary">High Performance</h4>
@@ -171,10 +171,8 @@ export const Footer: React.FC<FooterProps> = ({ navigate }) => {
         </div>
         
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-text-secondary/30">
-            <span>Made with</span>
-            <Heart className="w-3 h-3 text-brand-primary fill-brand-primary" />
-            <span>for the web</span>
+          <div className="text-[10px] font-black uppercase tracking-widest text-text-secondary/50">
+            Professional Web Utility
           </div>
           <div className="h-4 w-px bg-border-subtle/50"></div>
           <p className="text-[10px] font-black uppercase tracking-widest text-brand-primary/60">

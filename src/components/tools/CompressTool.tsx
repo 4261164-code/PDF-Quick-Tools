@@ -292,7 +292,7 @@ export const CompressTool: React.FC<ToolProps> = ({ navigate }) => {
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-lg bg-brand-primary text-white flex items-center justify-center">
-                            <Zap className="w-5 h-5 stroke-[1.5]" />
+                            <Sliders className="w-5 h-5 stroke-[1.5]" />
                           </div>
                           <div>
                             <p className="text-sm font-bold text-text-primary">Lossless Deflate Engine</p>

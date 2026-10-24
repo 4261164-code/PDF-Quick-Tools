@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, Info, Sparkles } from 'lucide-react';
+import { ExternalLink, Info } from 'lucide-react';
 import { trackEvent } from '../../utils/analytics';
 
 interface AdsterraPlacementProps {
@@ -43,13 +43,13 @@ export const AdsterraPlacement: React.FC<AdsterraPlacementProps> = ({
 
   return (
     <aside
-      className={`relative overflow-hidden p-6 sm:p-8 rounded-[2rem] bg-white border border-border-subtle shadow-xl shadow-black/[0.02] transition-all hover:border-brand-primary/20 ${className}`}
+      className={`relative overflow-hidden p-6 sm:p-8 rounded-[2rem] bg-white border border-border-subtle shadow-xl shadow-black/[0.02] transition-all ${className}`}
       aria-label="Sponsored Content"
     >
       <div className="flex items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-brand-primary/5 text-brand-primary">
-            <Sparkles className="w-3.5 h-3.5" />
+          <div className="p-1.5 rounded-lg bg-surface-main text-text-primary">
+            <Info className="w-3.5 h-3.5" />
           </div>
           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-text-secondary opacity-60">
             Sponsored Resource
@@ -76,10 +76,8 @@ export const AdsterraPlacement: React.FC<AdsterraPlacementProps> = ({
           <ExternalLink className="w-3.5 h-3.5 text-text-secondary group-hover:text-brand-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
         </a>
       </div>
-
-      {/* Subtle Background Accent */}
-      <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-brand-primary/5 rounded-full blur-2xl pointer-events-none" />
     </aside>
   );
 };
+
 

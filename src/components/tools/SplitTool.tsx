@@ -421,7 +421,7 @@ export const SplitTool: React.FC<ToolProps> = ({ navigate }) => {
                       <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-4 transition-colors ${
                         splitMode === 'ranges' ? 'bg-brand-primary text-white' : 'bg-surface-bg text-text-secondary/50 group-hover:text-brand-primary'
                       }`}>
-                        <Sparkles className="w-5 h-5 stroke-[1.5]" />
+                        <FileText className="w-5 h-5 stroke-[1.5]" />
                       </div>
                       <p className="text-sm font-bold text-text-primary">Custom Ranges</p>
                       <p className="text-xs text-text-secondary mt-1 leading-relaxed">

@@ -123,7 +123,7 @@ export const ProcessingCard: React.FC<ProcessingCardProps> = ({ state, onReset, 
                 <div className="flex flex-col items-end">
                   {resultSize < originalSize ? (
                     <div className="flex items-center gap-2">
-                      <Zap className="w-3.5 h-3.5 text-emerald-600" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                       <span className="font-mono text-sm font-black text-emerald-600">
                         -{Math.round(((originalSize - resultSize) / originalSize) * 100)}%
                       </span>
