@@ -31,4 +31,27 @@ describe('FAQ Schema JSON-LD Generator', () => {
     expect(schema.mainEntity[0].acceptedAnswer['@type']).toBe('Answer');
     expect(schema.mainEntity[0].acceptedAnswer.text).toBe(items[0].answer);
   });
+
+  it('correctly maps arbitrary question and answer pairs without data loss', () => {
+    const items: FaqItem[] = [
+      { question: 'Q1?', answer: 'A1' },
+      { question: 'Q2?', answer: 'A2' },
+      { question: 'Q3?', answer: 'A3' },
+    ];
+
+    const entities = items.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
+      },
+    }));
+
+    expect(entities.length).toBe(3);
+    entities.forEach((entity, idx) => {
+      expect(entity.name).toBe(items[idx].question);
+      expect(entity.acceptedAnswer.text).toBe(items[idx].answer);
+    });
+  });
 });

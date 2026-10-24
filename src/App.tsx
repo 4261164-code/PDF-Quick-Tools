@@ -111,30 +111,75 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Sync document title and meta description dynamically
+  // Production domain for canonical links and structured data
+  const PRODUCTION_DOMAIN = 'https://pdf-quick-tools.vercel.app';
+
+  // Sync document title, meta description, canonical URL, OG tags, and robots indexation dynamically
   useEffect(() => {
-    const meta = ROUTE_META[currentPath] || ROUTE_META['/'];
+    const isKnownRoute = Boolean(ROUTE_META[currentPath]);
+    const meta = ROUTE_META[currentPath] || {
+      title: 'Page Not Found | PDF Quick Tools',
+      description: 'The requested PDF tool or guide page could not be found. Explore our free browser-based PDF utilities.',
+    };
+
     document.title = meta.title;
 
+    // Meta description
     let descMeta = document.querySelector('meta[name="description"]');
-    if (descMeta) {
-      descMeta.setAttribute('content', meta.description);
+    if (!descMeta) {
+      descMeta = document.createElement('meta');
+      descMeta.setAttribute('name', 'description');
+      document.head.appendChild(descMeta);
     }
+    descMeta.setAttribute('content', meta.description);
 
+    // OpenGraph Title & Description
     let ogTitle = document.querySelector('meta[property="og:title"]');
     if (ogTitle) {
       ogTitle.setAttribute('content', meta.title);
     }
-
     let ogDesc = document.querySelector('meta[property="og:description"]');
     if (ogDesc) {
       ogDesc.setAttribute('content', meta.description);
     }
 
-    let canonical = document.querySelector('link[rel="canonical"]');
-    if (canonical && typeof window !== 'undefined') {
-      canonical.setAttribute('href', `${window.location.origin}${currentPath}`);
+    // Twitter Card Tags
+    let twTitle = document.querySelector('meta[name="twitter:title"]');
+    if (twTitle) {
+      twTitle.setAttribute('content', meta.title);
     }
+    let twDesc = document.querySelector('meta[name="twitter:description"]');
+    if (twDesc) {
+      twDesc.setAttribute('content', meta.description);
+    }
+
+    // Canonical URL
+    const canonicalHref = `${PRODUCTION_DOMAIN}${currentPath === '/' ? '/' : currentPath}`;
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute('href', canonicalHref);
+
+    // OpenGraph URL
+    let ogUrl = document.querySelector('meta[property="og:url"]');
+    if (!ogUrl) {
+      ogUrl = document.createElement('meta');
+      ogUrl.setAttribute('property', 'og:url');
+      document.head.appendChild(ogUrl);
+    }
+    ogUrl.setAttribute('content', canonicalHref);
+
+    // Indexation controls: index valid routes, protect unknown/private routes
+    let robotsMeta = document.querySelector('meta[name="robots"]');
+    if (!robotsMeta) {
+      robotsMeta = document.createElement('meta');
+      robotsMeta.setAttribute('name', 'robots');
+      document.head.appendChild(robotsMeta);
+    }
+    robotsMeta.setAttribute('content', isKnownRoute ? 'index, follow' : 'noindex, nofollow');
   }, [currentPath]);
 
   // Route renderer
@@ -171,7 +216,26 @@ export default function App() {
       case '/contact':
         return <ContactPage navigate={navigate} />;
       default:
-        return <HomePage navigate={navigate} />;
+        return (
+          <div className="max-w-2xl mx-auto px-4 py-20 text-center">
+            <span className="text-xs font-semibold text-red-700 uppercase tracking-wider bg-red-50 px-2.5 py-1 rounded border border-red-200">
+              404 Error
+            </span>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 mt-4 mb-2">
+              Page Not Found
+            </h1>
+            <p className="text-sm text-slate-600 mb-8 max-w-md mx-auto leading-relaxed">
+              The page or tool URL you requested does not exist or has moved. All of our free client-side PDF utilities are accessible from the homepage.
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate('/')}
+              className="min-h-[44px] px-6 py-2.5 text-sm font-semibold text-white bg-red-700 hover:bg-red-800 active:bg-red-900 rounded-lg shadow-2xs transition-colors inline-flex items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
+            >
+              Return to PDF Tools Hub
+            </button>
+          </div>
+        );
     }
   };
 

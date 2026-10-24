@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { Upload, FileText, Image as ImageIcon, AlertCircle } from 'lucide-react';
-import { validatePdfSignature, validateImageSignature, formatBytes } from '../../utils/fileValidation';
+import { Upload, FileText, Image as ImageIcon, AlertCircle, ShieldCheck } from 'lucide-react';
+import { validatePdfSignature, validateImageSignature, validateFileSize } from '../../utils/fileValidation';
 
 interface FileDropzoneProps {
   acceptType: 'pdf' | 'image';
@@ -28,14 +28,14 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
   const defaultTitle =
     acceptType === 'pdf'
       ? multiple
-        ? 'Select or Drop PDF Files'
-        : 'Select or Drop a PDF File'
-      : 'Select or Drop JPG/PNG Images';
+        ? 'Upload PDF documents'
+        : 'Upload a PDF document'
+      : 'Upload images';
 
   const defaultSubtitle =
     acceptType === 'pdf'
-      ? `Upload up to ${maxFiles} PDF documents (processed 100% in your browser)`
-      : `Select multiple JPG or PNG images to compile into a PDF`;
+      ? `Merge, split or compress up to ${maxFiles} files simultaneously.`
+      : `Select multiple JPG or PNG images to compile into a professional PDF.`;
 
   const acceptMime =
     acceptType === 'pdf' ? 'application/pdf,.pdf' : 'image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp';
@@ -59,9 +59,9 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
     const validFiles: File[] = [];
 
     for (const file of rawFiles) {
-      // Check file size limit (100 MB per file)
-      if (file.size > 100 * 1024 * 1024) {
-        setValidationError(`"${file.name}" is larger than 100MB (${formatBytes(file.size)}). Large files may exceed browser memory.`);
+      const sizeValidation = validateFileSize(file, 100 * 1024 * 1024);
+      if (!sizeValidation.valid) {
+        setValidationError(sizeValidation.error || 'Invalid file size.');
         return;
       }
 
@@ -111,14 +111,6 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
     }
   };
 
-  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      await processSelectedFiles(e.target.files);
-      // Reset input value so same files can be re-selected if deleted
-      e.target.value = '';
-    }
-  };
-
   return (
     <div className={`w-full ${className}`}>
       <div
@@ -126,10 +118,10 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
-        className={`relative flex flex-col items-center justify-center p-8 sm:p-12 text-center rounded-xl border-2 border-dashed cursor-pointer transition-all ${
+        className={`relative group flex flex-col items-center justify-center p-10 sm:p-16 text-center rounded-2xl border-2 transition-all duration-300 ease-out cursor-pointer overflow-hidden ${
           isDragging
-            ? 'border-red-500 bg-red-50/50 scale-[0.99]'
-            : 'border-slate-300 bg-white hover:border-slate-400 hover:bg-slate-50/50 shadow-2xs'
+            ? 'border-brand-primary bg-brand-primary/[0.02] ring-4 ring-brand-primary/5'
+            : 'border-border-subtle bg-surface-main hover:border-brand-primary/30 hover:bg-surface-bg/50'
         }`}
         role="button"
         tabIndex={0}
@@ -146,46 +138,76 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
           type="file"
           accept={acceptMime}
           multiple={multiple}
-          onChange={handleInputChange}
+          onChange={async (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+              await processSelectedFiles(e.target.files);
+              e.target.value = '';
+            }
+          }}
           className="hidden"
           tabIndex={-1}
         />
 
-        <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mb-4 shadow-2xs">
-          {acceptType === 'pdf' ? (
-            <FileText className="w-6 h-6 stroke-[1.8]" />
-          ) : (
-            <ImageIcon className="w-6 h-6 stroke-[1.8]" />
-          )}
+        {/* Decorative background element */}
+        <div className={`absolute inset-0 opacity-[0.03] pointer-events-none transition-opacity duration-500 ${isDragging ? 'opacity-[0.06]' : 'group-hover:opacity-[0.05]'}`}>
+          <div className="absolute top-0 left-0 w-full h-full" style={{ backgroundImage: 'radial-gradient(var(--color-brand-primary) 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
         </div>
 
-        <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-1">
+        <div className={`relative w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-all duration-300 ${
+          isDragging 
+            ? 'bg-brand-primary text-white scale-110' 
+            : 'bg-surface-bg text-brand-primary group-hover:scale-105 group-hover:bg-brand-primary group-hover:text-white'
+        }`}>
+          {acceptType === 'pdf' ? (
+            <FileText className="w-8 h-8 stroke-[1.5]" />
+          ) : (
+            <ImageIcon className="w-8 h-8 stroke-[1.5]" />
+          )}
+          <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-white shadow-sm flex items-center justify-center text-brand-primary">
+            <Upload className="w-3 h-3 stroke-[3]" />
+          </div>
+        </div>
+
+        <h3 className="relative text-xl sm:text-2xl font-bold text-text-primary mb-3">
           {title || defaultTitle}
         </h3>
-        <p className="text-xs sm:text-sm text-slate-500 max-w-md mb-4 leading-relaxed">
+        <p className="relative text-sm sm:text-base text-text-secondary max-w-md mb-8 leading-relaxed">
           {subtitle || defaultSubtitle}
         </p>
 
-        <div className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-md border border-slate-200 transition-colors pointer-events-none">
-          <Upload className="w-3.5 h-3.5" />
-          <span>Browse Device Files</span>
+        <div className="relative group/btn">
+          <div className="absolute inset-0 bg-brand-primary blur-md opacity-0 group-hover/btn:opacity-20 transition-opacity"></div>
+          <div className="relative min-h-[48px] inline-flex items-center justify-center gap-3 px-8 py-3 text-sm font-bold text-white bg-brand-primary hover:bg-brand-hover rounded-full transition-all shadow-lg shadow-brand-primary/20 active:scale-95 pointer-events-none">
+            <span>Choose Files</span>
+          </div>
         </div>
 
-        <div className="mt-4 flex items-center gap-3 text-[11px] text-slate-400">
-          <span>{acceptType === 'pdf' ? 'PDF (v1.0 - 2.0)' : 'JPG, PNG, WebP'}</span>
-          <span aria-hidden="true">·</span>
-          <span>Max 100MB per file</span>
-          <span aria-hidden="true">·</span>
-          <span className="text-emerald-700 font-medium">100% Client-Side</span>
+        <div className="relative mt-10 pt-8 border-t border-border-subtle/50 w-full flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-[11px] uppercase tracking-wider font-bold text-text-secondary/60">
+          <div className="flex items-center gap-2">
+            <span className="w-1 h-1 rounded-full bg-brand-primary/40"></span>
+            <span>{acceptType === 'pdf' ? 'Adobe PDF' : 'JPG · PNG · WebP'}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-1 h-1 rounded-full bg-brand-primary/40"></span>
+            <span>Up to 100MB</span>
+          </div>
+          <div className="flex items-center gap-2 text-emerald-700/80">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Private Processing</span>
+          </div>
         </div>
       </div>
 
       {validationError && (
-        <div className="mt-3 flex items-start gap-2 p-3 text-xs text-red-800 bg-red-50 border border-red-200 rounded-md">
-          <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
-          <span>{validationError}</span>
+        <div className="mt-4 flex items-start gap-3 p-4 text-sm text-red-900 bg-red-50 border border-red-100 rounded-xl animate-in fade-in slide-in-from-top-1">
+          <AlertCircle className="w-5 h-5 shrink-0 text-red-600" />
+          <div className="flex flex-col gap-1">
+            <span className="font-bold">Validation Error</span>
+            <span className="text-red-800/80 font-medium">{validationError}</span>
+          </div>
         </div>
       )}
     </div>
   );
 };
+

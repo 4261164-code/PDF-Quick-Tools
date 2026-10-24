@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Minimize2, FileText, AlertTriangle, ShieldCheck, CheckCircle2, Sliders, Info, ArrowDown } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Minimize2, FileText, AlertTriangle, ShieldCheck, HelpCircle, ArrowLeft, Info, CheckCircle2, Sliders, Zap } from 'lucide-react';
 import { FileDropzone } from '../common/FileDropzone';
 import { ProcessingCard } from '../common/ProcessingCard';
 import { RelatedTools } from '../common/RelatedTools';
@@ -8,10 +8,31 @@ import type { ProcessingState } from '../../types';
 import { getPdfInfo, compressPdf } from '../../utils/pdfOperations';
 import { formatBytes } from '../../utils/fileValidation';
 import { trackEvent } from '../../utils/analytics';
+import { FaqJsonLd, FaqItem } from '../common/FaqJsonLd';
+import { ToolJsonLd } from '../common/ToolJsonLd';
 
 interface ToolProps {
   navigate: (path: string) => void;
 }
+
+const COMPRESS_TOOL_FAQS: FaqItem[] = [
+  {
+    question: 'How does in-browser PDF compression work without uploading files?',
+    answer: 'Our engine performs Deflate object stream compression, strips redundant document metadata, and optimizes internal cross-reference tables directly in your browser memory via WebAssembly and JavaScript. Your files never leave your device.',
+  },
+  {
+    question: 'Why do some PDF files barely shrink or remain the same size?',
+    answer: 'If your PDF consists primarily of pre-compressed JPEG images or was already optimized by professional software, further lossless reduction is physically limited. Our tool provides honest byte metrics so you always know the exact result.',
+  },
+  {
+    question: 'Will compressing my PDF blur the text or degrade print quality?',
+    answer: 'No. Our standard compression is completely lossless for vector text, line artwork, and embedded fonts. Text remains crisp at any zoom level, and digital signatures are preserved.',
+  },
+  {
+    question: 'Is there a limit on the PDF file size I can compress?',
+    answer: 'You can compress PDF files up to 100MB directly in your browser. Because processing runs on your local CPU and RAM, there are no cloud queue delays or timeouts.',
+  },
+];
 
 export const CompressTool: React.FC<ToolProps> = ({ navigate }) => {
   const [selectedFile, setSelectedFile] = useState<{
@@ -22,8 +43,6 @@ export const CompressTool: React.FC<ToolProps> = ({ navigate }) => {
     buffer: ArrayBuffer;
   } | null>(null);
 
-  const [compressionMode, setCompressionMode] = useState<'standard' | 'aggressive'>('standard');
-
   const [processingState, setProcessingState] = useState<ProcessingState>({
     isProcessing: false,
     progress: 0,
@@ -33,6 +52,14 @@ export const CompressTool: React.FC<ToolProps> = ({ navigate }) => {
     resultUrl: null,
     resultFilename: null,
   });
+
+  useEffect(() => {
+    return () => {
+      if (processingState.resultUrl) {
+        URL.revokeObjectURL(processingState.resultUrl);
+      }
+    };
+  }, [processingState.resultUrl]);
 
   const handleFilesSelected = async (files: File[]) => {
     if (files.length === 0) return;
@@ -56,12 +83,16 @@ export const CompressTool: React.FC<ToolProps> = ({ navigate }) => {
   const handleCompress = async () => {
     if (!selectedFile) return;
 
+    if (processingState.resultUrl) {
+      URL.revokeObjectURL(processingState.resultUrl);
+    }
+
     trackEvent('processing_started', { tool: 'compress' });
 
     setProcessingState({
       isProcessing: true,
       progress: 20,
-      statusMessage: 'Analyzing document dictionaries and cross-reference tables...',
+      statusMessage: 'Analyzing document dictionaries...',
       error: null,
       resultBlob: null,
       resultUrl: null,
@@ -72,7 +103,7 @@ export const CompressTool: React.FC<ToolProps> = ({ navigate }) => {
       setProcessingState((prev) => ({
         ...prev,
         progress: 55,
-        statusMessage: 'Consolidating object streams with Deflate flate-encoding...',
+        statusMessage: 'Optimizing object streams...',
       }));
 
       const res = await compressPdf(selectedFile.buffer);
@@ -80,7 +111,7 @@ export const CompressTool: React.FC<ToolProps> = ({ navigate }) => {
       setProcessingState((prev) => ({
         ...prev,
         progress: 90,
-        statusMessage: 'Validating output PDF integrity...',
+        statusMessage: 'Finalizing PDF integrity...',
       }));
 
       const blob = new Blob([res.bytes.buffer as ArrayBuffer], { type: 'application/pdf' });
@@ -144,26 +175,26 @@ export const CompressTool: React.FC<ToolProps> = ({ navigate }) => {
     if (diff > 0 && pct >= 5) {
       return {
         type: 'success',
-        title: `Successfully reduced file size by ${pct}%`,
-        description: `Saved ${formatBytes(diff)} through structural object stream packaging and metadata cleanup.`,
+        title: `Reduced file size by ${pct}%`,
+        description: `Successfully saved ${formatBytes(diff)} through structural stream packaging.`,
       };
     } else if (diff > 0 && pct < 5) {
       return {
         type: 'neutral',
-        title: `Marginal reduction (${pct}% saved)`,
-        description: `Saved ${formatBytes(diff)}. Your document was already well-structured and efficiently encoded.`,
+        title: `Optimized (${pct}% saved)`,
+        description: `Saved ${formatBytes(diff)}. Your document was already highly efficient.`,
       };
     } else if (diff === 0) {
       return {
         type: 'neutral',
-        title: 'Document already maximally compressed',
-        description: 'The internal streams and fonts in this document are already optimized. No further lossless savings possible.',
+        title: 'Already Maximally Compressed',
+        description: 'The internal streams in this document are already optimized. No further lossless savings possible.',
       };
     } else {
       return {
         type: 'warning',
-        title: 'Original file was more compact than standardized streams',
-        description: `The output grew slightly by ${formatBytes(Math.abs(diff))}. This occurs when source PDFs utilize specialized proprietary compression. We recommend keeping your original file.`,
+        title: 'Original file was more compact',
+        description: `The standardized output grew by ${formatBytes(Math.abs(diff))}. We recommend using your original file.`,
       };
     }
   };
@@ -171,179 +202,253 @@ export const CompressTool: React.FC<ToolProps> = ({ navigate }) => {
   const feedback = getCompressionFeedback();
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
-      {/* Breadcrumb Navigation */}
-      <nav className="flex items-center gap-2 text-xs text-slate-500 mb-6" aria-label="Breadcrumb">
-        <a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }} className="hover:text-slate-900">
-          Home
-        </a>
-        <span aria-hidden="true">/</span>
-        <span className="text-slate-900 font-medium">Compress PDF</span>
-      </nav>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 lg:py-20">
+      <ToolJsonLd
+        name="Compress PDF Files Online - PDF Quick Tools"
+        url="https://pdf-quick-tools.vercel.app/compress-pdf"
+        applicationSubCategory="PDF Optimizer"
+        description="Reduce PDF file sizes using browser-based Deflate object stream optimization with honest byte reporting and zero text blurring."
+        featureList={[
+          "Lossless structural object stream optimization using Deflate algorithm",
+          "Authoring metadata cleanup and redundant thumbnail removal",
+          "Honest byte-level savings tracking without fabricated numbers",
+          "Zero quality loss: keeps 100% vector typography and lines crisp",
+          "Zero server uploads: 100% client-side memory privacy",
+        ]}
+      />
+      <FaqJsonLd items={COMPRESS_TOOL_FAQS} />
 
-      {/* Header */}
-      <div className="mb-8">
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-red-50 text-red-700 text-xs font-semibold mb-3">
-          <Minimize2 className="w-3.5 h-3.5" />
-          <span>Honest Optimization Engine</span>
+      {/* Navigation & Header */}
+      <div className="flex flex-col items-start gap-8 mb-16">
+        <button 
+          onClick={() => navigate('/')}
+          className="group flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-text-secondary/60 hover:text-brand-primary transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
+          <span>Back to Tools</span>
+        </button>
+
+        <div className="space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/10 text-brand-primary text-[10px] font-black uppercase tracking-[0.2em]">
+            <Minimize2 className="w-3.5 h-3.5" />
+            <span>Optimization Engine</span>
+          </div>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-text-primary leading-[1.1]">
+            Compress PDF <br className="hidden sm:block" />
+            <span className="text-brand-primary">Files Fast.</span>
+          </h1>
+          <p className="text-base sm:text-lg text-text-secondary max-w-2xl leading-relaxed">
+            Reduce file weight for email, portals, and archives. We use safe, structural 
+            optimization that preserves 100% of your text and vector clarity.
+          </p>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-          Compress PDF Files Online
-        </h1>
-        <p className="mt-2 text-sm text-slate-600 max-w-2xl leading-relaxed">
-          Reduce the file size of your PDF files using clean structural object streams and redundant metadata stripping. We report honest byte-level changes and never fabricate compression figures.
-        </p>
       </div>
 
-      <div className="space-y-6">
-        {!selectedFile && !processingState.resultUrl && (
-          <FileDropzone
-            acceptType="pdf"
-            multiple={false}
-            onFilesSelected={handleFilesSelected}
-            title="Drop the PDF file to compress here"
-            subtitle="Upload any PDF document up to 100MB"
-          />
-        )}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        <div className="lg:col-span-8 space-y-8">
+          {!selectedFile && !processingState.resultUrl && (
+            <FileDropzone
+              acceptType="pdf"
+              multiple={false}
+              onFilesSelected={handleFilesSelected}
+            />
+          )}
 
-        {selectedFile && !processingState.resultUrl && !processingState.isProcessing && (
-          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-6">
-            <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-lg">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0">
-                  <FileText className="w-5 h-5" />
+          {selectedFile && !processingState.resultUrl && !processingState.isProcessing && (
+            <div className="space-y-8">
+              <div className="bg-surface-main border border-border-subtle rounded-2xl p-8 shadow-xl shadow-text-primary/5">
+                {/* File Header */}
+                <div className="flex items-center justify-between p-5 bg-surface-bg border border-border-subtle rounded-xl mb-8">
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="w-12 h-12 rounded-xl bg-brand-primary text-white flex items-center justify-center shrink-0">
+                      <FileText className="w-6 h-6 stroke-[1.5]" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-text-primary truncate">{selectedFile.name}</p>
+                      <div className="flex items-center gap-3 text-[11px] font-mono font-medium text-text-secondary/60 mt-1 uppercase">
+                        <span className="tabular-nums font-bold text-text-primary">{formatBytes(selectedFile.size)}</span>
+                        <span className="w-1 h-1 rounded-full bg-border-subtle"></span>
+                        <span className="tabular-nums">
+                          {selectedFile.pageCount} Pages
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="h-10 px-4 text-xs font-bold uppercase tracking-widest text-text-secondary/60 hover:text-brand-primary transition-colors"
+                  >
+                    Change
+                  </button>
                 </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-slate-900 truncate">{selectedFile.name}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Original Size: <span className="font-mono tabular-nums font-semibold text-slate-900">{formatBytes(selectedFile.size)}</span>
-                    <span aria-hidden="true"> · </span>
-                    <span className="tabular-nums">{selectedFile.pageCount} pages</span>
-                  </p>
+
+                <div className="space-y-8">
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-black uppercase tracking-[0.15em] text-text-secondary/70">
+                      Standard Optimization Profile
+                    </h3>
+                    <div className="group relative p-6 rounded-xl border-2 border-brand-primary bg-brand-primary/[0.02] ring-4 ring-brand-primary/5">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-brand-primary text-white flex items-center justify-center">
+                            <Zap className="w-5 h-5 stroke-[1.5]" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-text-primary">Lossless Deflate Engine</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-brand-primary mt-0.5">High Efficiency</p>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-xs text-text-secondary leading-relaxed">
+                        Consolidates internal object dictionaries into compressed flate streams, strips redundant metadata, and removes orphaned references. 100% vector and text sharpness guaranteed.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4 p-5 bg-amber-50/50 border border-amber-100 rounded-xl">
+                    <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-bold text-amber-900 uppercase tracking-wide">Honest Reporting</p>
+                      <p className="text-xs text-amber-800/80 mt-1 leading-relaxed">
+                        If your PDF is already composed of scanned images, further savings may be modest. 
+                        We report real byte changes honestly, never inflating percentages.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-12 pt-8 border-t border-border-subtle flex items-center justify-end gap-6">
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="text-sm font-bold text-text-secondary hover:text-text-primary transition-colors"
+                  >
+                    Reset
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCompress}
+                    className="h-12 px-10 text-sm font-black uppercase tracking-widest text-white bg-brand-primary hover:bg-brand-hover rounded-full shadow-lg shadow-brand-primary/25 transition-all active:scale-95"
+                  >
+                    Compress File
+                  </button>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={handleReset}
-                className="text-xs text-slate-500 hover:text-red-600 p-2 font-medium"
-              >
-                Change File
-              </button>
             </div>
+          )}
 
-            {/* Profile Selection */}
-            <div className="space-y-3">
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                Optimization Profile
-              </label>
+          <ProcessingCard
+            state={processingState}
+            onReset={handleReset}
+            toolName="compress"
+          />
 
-              <div className="p-4 rounded-lg border border-red-600 bg-red-50/20 ring-1 ring-red-600">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-slate-900">
-                    Lossless Structural Stream Optimization
-                  </span>
-                  <span className="text-xs font-semibold text-red-700 bg-red-100/70 px-2 py-0.5 rounded">
-                    Zero Quality Degradation
-                  </span>
+          {feedback && processingState.resultUrl && !processingState.isProcessing && (
+            <div className={`p-8 rounded-2xl border-2 animate-in fade-in slide-in-from-bottom-4 duration-500 ${
+              feedback.type === 'success'
+                ? 'bg-emerald-50/30 border-emerald-100 text-emerald-900'
+                : feedback.type === 'warning'
+                ? 'bg-amber-50/30 border-amber-100 text-amber-900'
+                : 'bg-surface-main border-border-subtle text-text-primary shadow-lg shadow-text-primary/5'
+            }`}>
+              <div className="flex items-center gap-4 mb-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                  feedback.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-surface-bg text-text-secondary/50'
+                }`}>
+                  {feedback.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <Info className="w-5 h-5" />}
                 </div>
-                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                  Consolidates internal object dictionaries into compressed Deflate object streams, strips authoring thumbnails, and removes orphaned cross-references while retaining 100% vector and text sharpness.
+                <h3 className="text-lg font-black">{feedback.title}</h3>
+              </div>
+              <p className="text-sm text-text-secondary/80 leading-relaxed font-medium pl-14">
+                {feedback.description}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Sidebar */}
+        <div className="lg:col-span-4 space-y-10">
+          <div className="p-8 bg-surface-main border border-border-subtle rounded-2xl space-y-8">
+            <h3 className="text-sm font-black uppercase tracking-widest text-text-primary">
+              The Engine
+            </h3>
+            <div className="space-y-6">
+              <div className="space-y-2 pt-2">
+                <h4 className="text-xs font-bold text-text-primary flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
+                  Dictionary Optimization
+                </h4>
+                <p className="text-[11px] text-text-secondary leading-relaxed">
+                  Structural objects and fonts are bundled into flate streams for minimal footprint.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold text-text-primary flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
+                  Metadata Stripping
+                </h4>
+                <p className="text-[11px] text-text-secondary leading-relaxed">
+                  Safely removes redundant thumbnails, history XML, and unused cross-references.
+                </p>
+              </div>
+              <div className="flex items-start gap-3 p-4 bg-emerald-50/50 rounded-xl border border-emerald-100">
+                <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+                <p className="text-[11px] text-emerald-800 font-bold uppercase tracking-tight leading-relaxed">
+                  100% Private. <br /> In-Browser Processing.
                 </p>
               </div>
             </div>
-
-            {/* Honest Expectation Notice */}
-            <div className="flex items-start gap-3 p-3.5 bg-amber-50/70 border border-amber-200 rounded-lg text-xs text-amber-900 leading-relaxed">
-              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-              <div>
-                <strong className="font-semibold">Honest Compression Notice:</strong> If your PDF is already composed of scanned JPEG images or already uses object streams, reduction percentages may be modest. We report real byte changes honestly.
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={handleReset}
-                className="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:text-slate-900 rounded-lg"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleCompress}
-                className="px-6 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-colors"
-              >
-                Compress Document
-              </button>
-            </div>
           </div>
-        )}
-
-        {/* Processing State Card */}
-        <ProcessingCard
-          state={processingState}
-          onReset={handleReset}
-          toolName="compress"
-        />
-
-        {/* Detailed Honest Outcome Feedback Box if Completed */}
-        {feedback && processingState.resultUrl && !processingState.isProcessing && (
-          <div
-            className={`p-4 rounded-xl border text-xs leading-relaxed space-y-1.5 ${
-              feedback.type === 'success'
-                ? 'bg-emerald-50/70 border-emerald-200 text-emerald-900'
-                : feedback.type === 'warning'
-                ? 'bg-amber-50/70 border-amber-200 text-amber-900'
-                : 'bg-slate-50 border-slate-200 text-slate-800'
-            }`}
-          >
-            <div className="flex items-center gap-2 font-semibold text-sm">
-              {feedback.type === 'success' ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              ) : (
-                <Info className="w-4 h-4 text-slate-500" />
-              )}
-              <span>{feedback.title}</span>
-            </div>
-            <p className="text-slate-600 pl-6">{feedback.description}</p>
-          </div>
-        )}
+          <AdsterraPlacement placementLocation="below-tool" />
+        </div>
       </div>
 
-      <AdsterraPlacement placementLocation="below-tool" />
+      {/* Guide Section */}
+      <div className="mt-32 pt-20 border-t border-border-subtle">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
+          <div className="space-y-8">
+            <h2 className="text-3xl font-black tracking-tight text-text-primary">
+              Scientific <br />
+              <span className="text-brand-primary">Weight Reduction.</span>
+            </h2>
+            <div className="space-y-4">
+              {COMPRESS_TOOL_FAQS.slice(0, 2).map((faq, idx) => (
+                <div key={idx} className="group p-6 bg-surface-main border border-border-subtle rounded-2xl hover:border-brand-primary/30 transition-colors">
+                  <h3 className="font-bold text-text-primary flex items-center justify-between">
+                    <span>{faq.question}</span>
+                  </h3>
+                  <p className="text-sm text-text-secondary mt-3 leading-relaxed">
+                    {faq.answer}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
 
-      {/* Guide & Technical FAQs */}
-      <section className="mt-16 space-y-8 text-slate-700">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900 mb-3">Understanding Real PDF Compression</h2>
-          <p className="text-sm text-slate-600 leading-relaxed">
-            Unlike simple text files, PDFs are multi-part binary containers. A document's file size is governed by three distinct categories:
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="p-4 bg-white border border-slate-200 rounded-lg">
-            <h3 className="font-semibold text-slate-900 text-sm mb-1">1. Object Dictionaries</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Page structures, fonts, and annotations. We bundle these into compressed Deflate object streams.
-            </p>
-          </div>
-          <div className="p-4 bg-white border border-slate-200 rounded-lg">
-            <h3 className="font-semibold text-slate-900 text-sm mb-1">2. Authoring Metadata</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Embedded thumbnail images, edit history XML, and printer profiles that can be safely stripped.
-            </p>
-          </div>
-          <div className="p-4 bg-white border border-slate-200 rounded-lg">
-            <h3 className="font-semibold text-slate-900 text-sm mb-1">3. Embedded Scans</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              High-DPI scanner imagery. When already compressed as JPEG/JBIG2, lossless rewrites preserve 100% pixel sharpness.
-            </p>
+          <div className="space-y-8">
+            <h2 className="text-3xl font-black tracking-tight text-text-primary">
+              Quality & <br />
+              <span className="text-brand-primary">Integrity.</span>
+            </h2>
+            <div className="space-y-4">
+              {COMPRESS_TOOL_FAQS.slice(2).map((faq, idx) => (
+                <div key={idx} className="group p-6 bg-surface-main border border-border-subtle rounded-2xl hover:border-brand-primary/30 transition-colors">
+                  <h3 className="font-bold text-text-primary flex items-center justify-between">
+                    <span>{faq.question}</span>
+                  </h3>
+                  <p className="text-sm text-text-secondary mt-3 leading-relaxed">
+                    {faq.answer}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </section>
+      </div>
 
       <RelatedTools currentPath="/compress-pdf" navigate={navigate} />
     </div>
   );
 };
+

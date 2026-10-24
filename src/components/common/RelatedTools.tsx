@@ -10,25 +10,25 @@ const ALL_TOOLS = [
   {
     path: '/merge-pdf',
     title: 'Merge PDF',
-    description: 'Combine multiple PDF files into one single document in customized order.',
+    description: 'Combine multiple files into one single document in customized order.',
     icon: Layers,
   },
   {
     path: '/split-pdf',
     title: 'Split PDF',
-    description: 'Separate document pages or extraction ranges into independent files or ZIP.',
+    description: 'Separate document pages or extraction ranges into independent files.',
     icon: Scissors,
   },
   {
     path: '/compress-pdf',
     title: 'Compress PDF',
-    description: 'Reduce file size using browser-based stream optimization and honest reporting.',
+    description: 'Reduce file size using browser-based stream optimization.',
     icon: Minimize2,
   },
   {
     path: '/image-to-pdf',
     title: 'Image to PDF',
-    description: 'Convert JPG, PNG, and WebP photos into clean, standardized PDF pages.',
+    description: 'Convert JPG, PNG, and WebP photos into clean PDF pages.',
     icon: Image,
   },
   {
@@ -55,23 +55,23 @@ export const RelatedTools: React.FC<RelatedToolsProps> = ({ currentPath, navigat
   };
 
   return (
-    <section className="mt-16 pt-12 border-t border-slate-200">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h3 className="text-base font-semibold text-slate-900">Explore Related PDF Utilities</h3>
-          <p className="text-xs text-slate-500 mt-0.5">Free client-side tools to complete your document workflow</p>
+    <section className="mt-32 pt-20 border-t border-border-subtle">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12">
+        <div className="space-y-2">
+          <h3 className="text-2xl font-black text-text-primary tracking-tight">Explore More Utilities</h3>
+          <p className="text-sm text-text-secondary font-medium uppercase tracking-wider">Complete your document workflow</p>
         </div>
         <a
           href="/"
           onClick={(e) => handleNav('/', e)}
-          className="text-xs font-medium text-red-600 hover:text-red-700 inline-flex items-center gap-1"
+          className="group inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-brand-primary hover:text-brand-hover transition-colors"
         >
-          <span>All Tools</span>
-          <ArrowRight className="w-3.5 h-3.5" />
+          <span>View All Tools</span>
+          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
         </a>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {filtered.map((tool) => {
           const Icon = tool.icon;
           return (
@@ -79,23 +79,25 @@ export const RelatedTools: React.FC<RelatedToolsProps> = ({ currentPath, navigat
               key={tool.path}
               href={tool.path}
               onClick={(e) => handleNav(tool.path, e)}
-              className="p-5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl transition-all shadow-2xs hover:shadow-xs group flex flex-col justify-between"
+              className="group p-8 bg-surface-main border border-border-subtle hover:border-brand-primary/30 rounded-2xl transition-all shadow-lg shadow-text-primary/[0.02] flex flex-col justify-between"
             >
               <div>
-                <div className="w-9 h-9 rounded-lg bg-red-50 text-red-600 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-                  <Icon className="w-4 h-4" />
+                <div className="w-12 h-12 rounded-xl bg-surface-bg text-brand-primary flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-brand-primary group-hover:text-white transition-all duration-300">
+                  <Icon className="w-6 h-6 stroke-[1.5]" />
                 </div>
-                <h4 className="text-sm font-semibold text-slate-900 group-hover:text-red-600 transition-colors">
+                <h4 className="text-lg font-black text-text-primary group-hover:text-brand-primary transition-colors">
                   {tool.title}
                 </h4>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                <p className="text-sm text-text-secondary mt-3 leading-relaxed font-medium">
                   {tool.description}
                 </p>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-medium text-slate-700">
-                <span>Launch Tool</span>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-red-600 group-hover:translate-x-0.5 transition-all" />
+              <div className="mt-8 pt-6 border-t border-border-subtle/50 flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-widest text-text-secondary/40 group-hover:text-brand-primary/60 transition-colors">
+                  Launch Utility
+                </span>
+                <ArrowRight className="w-4 h-4 text-text-secondary/30 group-hover:text-brand-primary group-hover:translate-x-1 transition-all" />
               </div>
             </a>
           );
@@ -104,3 +106,4 @@ export const RelatedTools: React.FC<RelatedToolsProps> = ({ currentPath, navigat
     </section>
   );
 };
+

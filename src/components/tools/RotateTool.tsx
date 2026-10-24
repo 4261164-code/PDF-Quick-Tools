@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { RotateCw, RotateCcw, FileText, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { RotateCw, RotateCcw, FileText, ArrowLeft, ShieldCheck, HelpCircle, Compass, RefreshCw } from 'lucide-react';
 import { FileDropzone } from '../common/FileDropzone';
 import { ProcessingCard } from '../common/ProcessingCard';
 import { RelatedTools } from '../common/RelatedTools';
@@ -9,10 +9,31 @@ import { getPdfInfo, rotatePdfPages } from '../../utils/pdfOperations';
 import { parsePageRange } from '../../utils/pageRangeParser';
 import { formatBytes } from '../../utils/fileValidation';
 import { trackEvent } from '../../utils/analytics';
+import { FaqJsonLd, FaqItem } from '../common/FaqJsonLd';
+import { ToolJsonLd } from '../common/ToolJsonLd';
 
 interface ToolProps {
   navigate: (path: string) => void;
 }
+
+const ROTATE_TOOL_FAQS: FaqItem[] = [
+  {
+    question: 'Is the rotation permanent or just a preview?',
+    answer: 'The rotation is permanent. Our tool updates the official /Rotate attribute in the PDF document dictionary so the new orientation displays correctly in all PDF viewers.',
+  },
+  {
+    question: 'Can I rotate only specific pages?',
+    answer: 'Yes. You can choose "Specific Pages" and enter specific page numbers or ranges (e.g. 1, 3, 5-7) to rotate only the pages that are sideways.',
+  },
+  {
+    question: 'Does rotating a PDF degrade font quality?',
+    answer: 'No. Rotating modifies orientation metadata coordinates without re-rasterizing text or images. Quality remains 100% identical.',
+  },
+  {
+    question: 'What rotation angles are supported?',
+    answer: 'You can rotate pages 90° clockwise (right), 180° (upside down), or 270° clockwise (left / 90° counter-clockwise).',
+  },
+];
 
 export const RotateTool: React.FC<ToolProps> = ({ navigate }) => {
   const [selectedFile, setSelectedFile] = useState<{
@@ -36,6 +57,14 @@ export const RotateTool: React.FC<ToolProps> = ({ navigate }) => {
     resultUrl: null,
     resultFilename: null,
   });
+
+  useEffect(() => {
+    return () => {
+      if (processingState.resultUrl) {
+        URL.revokeObjectURL(processingState.resultUrl);
+      }
+    };
+  }, [processingState.resultUrl]);
 
   const handleFilesSelected = async (files: File[]) => {
     if (files.length === 0) return;
@@ -74,12 +103,16 @@ export const RotateTool: React.FC<ToolProps> = ({ navigate }) => {
       targetPages = res.pages;
     }
 
+    if (processingState.resultUrl) {
+      URL.revokeObjectURL(processingState.resultUrl);
+    }
+
     trackEvent('processing_started', { tool: 'rotate' });
 
     setProcessingState({
       isProcessing: true,
       progress: 30,
-      statusMessage: `Rotating pages by ${rotationAngle}° clockwise...`,
+      statusMessage: 'Adjusting orientation...',
       error: null,
       resultBlob: null,
       resultUrl: null,
@@ -92,12 +125,12 @@ export const RotateTool: React.FC<ToolProps> = ({ navigate }) => {
       setProcessingState((prev) => ({
         ...prev,
         progress: 85,
-        statusMessage: 'Saving rotated document...',
+        statusMessage: 'Saving document...',
       }));
 
       const blob = new Blob([rotatedBytes.buffer as ArrayBuffer], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
-      const filename = `${selectedFile.name.replace(/\.pdf$/i, '')}_rotated_${rotationAngle}deg.pdf`;
+      const filename = `${selectedFile.name.replace(/\.pdf$/i, '')}_rotated.pdf`;
 
       setProcessingState({
         isProcessing: false,
@@ -144,210 +177,309 @@ export const RotateTool: React.FC<ToolProps> = ({ navigate }) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
-      {/* Breadcrumb Navigation */}
-      <nav className="flex items-center gap-2 text-xs text-slate-500 mb-6" aria-label="Breadcrumb">
-        <a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }} className="hover:text-slate-900">
-          Home
-        </a>
-        <span aria-hidden="true">/</span>
-        <span className="text-slate-900 font-medium">Rotate PDF</span>
-      </nav>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 lg:py-20">
+      <ToolJsonLd
+        name="Rotate PDF Pages Online - PDF Quick Tools"
+        url="https://pdf-quick-tools.vercel.app/rotate-pdf"
+        applicationSubCategory="PDF Page Rotator"
+        description="Permanently rotate upside-down or sideways PDF pages by 90, 180, or 270 degrees clockwise. 100% private in-browser processing."
+        featureList={[
+          "Rotate all pages or specific page numbers/ranges",
+          "Permanent rotation catalog dictionary updates without text rasterization",
+          "Supports 90 degrees right, 180 degrees flip, and 270 degrees left",
+          "Zero quality degradation: preserves vector text and font definitions",
+          "Zero server uploads: 100% client-side memory privacy",
+        ]}
+      />
+      <FaqJsonLd items={ROTATE_TOOL_FAQS} />
 
-      <div className="mb-8">
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-red-50 text-red-700 text-xs font-semibold mb-3">
-          <RotateCw className="w-3.5 h-3.5" />
-          <span>Orientation Fixer</span>
+      {/* Navigation & Header */}
+      <div className="flex flex-col items-start gap-8 mb-16">
+        <button 
+          onClick={() => navigate('/')}
+          className="group flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-text-secondary/60 hover:text-brand-primary transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
+          <span>Back to Tools</span>
+        </button>
+
+        <div className="space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/10 text-brand-primary text-[10px] font-black uppercase tracking-[0.2em]">
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Orientation Fixer</span>
+          </div>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-text-primary leading-[1.1]">
+            Rotate PDF <br className="hidden sm:block" />
+            <span className="text-brand-primary">Pages Permanently.</span>
+          </h1>
+          <p className="text-base sm:text-lg text-text-secondary max-w-2xl leading-relaxed">
+            Fix sideways scans or upside-down uploads in seconds. We update the document's
+            internal rotation flags while keeping 100% of your original quality.
+          </p>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-          Rotate PDF Pages Online Free
-        </h1>
-        <p className="mt-2 text-sm text-slate-600 max-w-2xl leading-relaxed">
-          Permanently fix upside-down scans and landscape pages. Rotate all pages or specific page numbers by 90°, 180°, or 270° clockwise with zero quality degradation.
-        </p>
       </div>
 
-      <div className="space-y-6">
-        {!selectedFile && !processingState.resultUrl && (
-          <FileDropzone
-            acceptType="pdf"
-            multiple={false}
-            onFilesSelected={handleFilesSelected}
-            title="Drop the PDF to rotate here"
-            subtitle="Upload any PDF with upside-down or sideways pages"
-          />
-        )}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        <div className="lg:col-span-8 space-y-8">
+          {!selectedFile && !processingState.resultUrl && (
+            <FileDropzone
+              acceptType="pdf"
+              multiple={false}
+              onFilesSelected={handleFilesSelected}
+            />
+          )}
 
-        {selectedFile && !processingState.resultUrl && !processingState.isProcessing && (
-          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-6">
-            <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-lg">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0">
-                  <FileText className="w-5 h-5" />
+          {selectedFile && !processingState.resultUrl && !processingState.isProcessing && (
+            <div className="space-y-8">
+              <div className="bg-surface-main border border-border-subtle rounded-2xl p-8 shadow-xl shadow-text-primary/5">
+                {/* File Header */}
+                <div className="flex items-center justify-between p-5 bg-surface-bg border border-border-subtle rounded-xl mb-10">
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="w-12 h-12 rounded-xl bg-brand-primary text-white flex items-center justify-center shrink-0">
+                      <FileText className="w-6 h-6 stroke-[1.5]" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-text-primary truncate">{selectedFile.name}</p>
+                      <div className="flex items-center gap-3 text-[11px] font-mono font-medium text-text-secondary/60 mt-1 uppercase">
+                        <span className="tabular-nums font-bold text-text-primary">{formatBytes(selectedFile.size)}</span>
+                        <span className="w-1 h-1 rounded-full bg-border-subtle"></span>
+                        <span className="text-brand-primary font-bold">
+                          {selectedFile.pageCount} Pages Total
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="h-10 px-4 text-xs font-bold uppercase tracking-widest text-text-secondary/60 hover:text-brand-primary transition-colors"
+                  >
+                    Change
+                  </button>
                 </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-slate-900 truncate">{selectedFile.name}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    <span className="tabular-nums">{formatBytes(selectedFile.size)}</span>
-                    <span aria-hidden="true"> · </span>
-                    <span className="tabular-nums font-semibold text-slate-800">{selectedFile.pageCount} total pages</span>
+
+                <div className="space-y-12">
+                  {/* Angle Selection */}
+                  <div className="space-y-4">
+                    <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-text-secondary/70">
+                      <Compass className="w-3 h-3 text-brand-primary" />
+                      Rotation Angle
+                    </label>
+                    <div className="grid grid-cols-3 gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setRotationAngle(90)}
+                        className={`group relative h-24 rounded-xl border-2 flex flex-col items-center justify-center gap-2 transition-all ${
+                          rotationAngle === 90
+                            ? 'border-brand-primary bg-brand-primary/[0.02] ring-4 ring-brand-primary/5'
+                            : 'border-border-subtle bg-surface-main hover:border-brand-primary/30'
+                        }`}
+                      >
+                        <RotateCw className={`w-6 h-6 transition-colors ${rotationAngle === 90 ? 'text-brand-primary' : 'text-text-secondary/40 group-hover:text-brand-primary/60'}`} />
+                        <span className={`text-[10px] font-black uppercase tracking-widest ${rotationAngle === 90 ? 'text-brand-primary' : 'text-text-secondary/60'}`}>90° Right</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setRotationAngle(180)}
+                        className={`group relative h-24 rounded-xl border-2 flex flex-col items-center justify-center gap-2 transition-all ${
+                          rotationAngle === 180
+                            ? 'border-brand-primary bg-brand-primary/[0.02] ring-4 ring-brand-primary/5'
+                            : 'border-border-subtle bg-surface-main hover:border-brand-primary/30'
+                        }`}
+                      >
+                        <RotateCw className={`w-6 h-6 rotate-90 transition-colors ${rotationAngle === 180 ? 'text-brand-primary' : 'text-text-secondary/40 group-hover:text-brand-primary/60'}`} />
+                        <span className={`text-[10px] font-black uppercase tracking-widest ${rotationAngle === 180 ? 'text-brand-primary' : 'text-text-secondary/60'}`}>180° Flip</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setRotationAngle(270)}
+                        className={`group relative h-24 rounded-xl border-2 flex flex-col items-center justify-center gap-2 transition-all ${
+                          rotationAngle === 270
+                            ? 'border-brand-primary bg-brand-primary/[0.02] ring-4 ring-brand-primary/5'
+                            : 'border-border-subtle bg-surface-main hover:border-brand-primary/30'
+                        }`}
+                      >
+                        <RotateCcw className={`w-6 h-6 transition-colors ${rotationAngle === 270 ? 'text-brand-primary' : 'text-text-secondary/40 group-hover:text-brand-primary/60'}`} />
+                        <span className={`text-[10px] font-black uppercase tracking-widest ${rotationAngle === 270 ? 'text-brand-primary' : 'text-text-secondary/60'}`}>90° Left</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Selection Scope */}
+                  <div className="space-y-4 pt-10 border-t border-border-subtle/50">
+                    <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-text-secondary/70">
+                      Selection Scope
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setTargetScope('all')}
+                        className={`p-5 rounded-xl border-2 text-left transition-all ${
+                          targetScope === 'all'
+                            ? 'border-brand-primary bg-brand-primary/[0.02] ring-4 ring-brand-primary/5'
+                            : 'border-border-subtle bg-surface-main hover:border-brand-primary/30'
+                        }`}
+                      >
+                        <p className="text-sm font-bold text-text-primary">All Pages</p>
+                        <p className="text-xs text-text-secondary mt-1 leading-relaxed">Rotate the entire document</p>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setTargetScope('specific')}
+                        className={`p-5 rounded-xl border-2 text-left transition-all ${
+                          targetScope === 'specific'
+                            ? 'border-brand-primary bg-brand-primary/[0.02] ring-4 ring-brand-primary/5'
+                            : 'border-border-subtle bg-surface-main hover:border-brand-primary/30'
+                        }`}
+                      >
+                        <p className="text-sm font-bold text-text-primary">Specific Pages</p>
+                        <p className="text-xs text-text-secondary mt-1 leading-relaxed">Only rotate targeted page numbers</p>
+                      </button>
+                    </div>
+
+                    {targetScope === 'specific' && (
+                      <div className="pt-4 animate-in fade-in slide-in-from-top-2">
+                        <input
+                          type="text"
+                          value={specificPagesInput}
+                          onChange={(e) => setSpecificPagesInput(e.target.value)}
+                          placeholder="e.g. 1, 3, 5-7"
+                          className="w-full h-12 px-6 text-sm font-mono font-bold bg-surface-bg border-2 border-border-subtle rounded-xl focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all outline-hidden"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-12 pt-8 border-t border-border-subtle flex items-center justify-end gap-6">
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="text-sm font-bold text-text-secondary hover:text-text-primary transition-colors"
+                  >
+                    Reset
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRotate}
+                    className="h-12 px-10 text-sm font-black uppercase tracking-widest text-white bg-brand-primary hover:bg-brand-hover rounded-full shadow-lg shadow-brand-primary/25 transition-all active:scale-95"
+                  >
+                    Apply Rotation
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <ProcessingCard
+            state={processingState}
+            onReset={handleReset}
+            toolName="rotate"
+          />
+        </div>
+
+        {/* Sidebar */}
+        <div className="lg:col-span-4 space-y-10">
+          <div className="p-8 bg-surface-main border border-border-subtle rounded-2xl space-y-8">
+            <h3 className="text-sm font-black uppercase tracking-widest text-text-primary">
+              Rotation Standard
+            </h3>
+            <div className="space-y-6">
+              <div className="space-y-2 pt-2">
+                <h4 className="text-xs font-bold text-text-primary flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
+                  Official Attribute
+                </h4>
+                <p className="text-[11px] text-text-secondary leading-relaxed">
+                  We update the /Rotate attribute in the PDF dictionary for universal compatibility.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold text-text-primary flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
+                  Zero Re-Encoding
+                </h4>
+                <p className="text-[11px] text-text-secondary leading-relaxed">
+                  Fonts and images are not altered. The file structure is updated losslessly.
+                </p>
+              </div>
+              <div className="flex items-start gap-3 p-4 bg-emerald-50/50 rounded-xl border border-emerald-100">
+                <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+                <p className="text-[11px] text-emerald-800 font-bold uppercase tracking-tight leading-relaxed">
+                  Private Memory Rotation. <br /> Zero Uploads.
+                </p>
+              </div>
+            </div>
+          </div>
+          <AdsterraPlacement placementLocation="below-tool" />
+        </div>
+      </div>
+
+      {/* Guide Section */}
+      <div className="mt-32 pt-20 border-t border-border-subtle">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
+          <div className="space-y-8">
+            <h2 className="text-3xl font-black tracking-tight text-text-primary">
+              Precision <br />
+              <span className="text-brand-primary">Orientation.</span>
+            </h2>
+            <div className="space-y-6">
+              <div className="flex gap-6">
+                <span className="text-4xl font-black text-brand-primary/20 tabular-nums">01</span>
+                <div className="space-y-2 pt-2">
+                  <h4 className="font-bold text-text-primary">Load Document</h4>
+                  <p className="text-sm text-text-secondary leading-relaxed">
+                    Import your PDF. Sideways scans are identifying by their orientation flags instantly.
                   </p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={handleReset}
-                className="text-xs text-slate-500 hover:text-red-600 p-2"
-              >
-                Change File
-              </button>
-            </div>
-
-            {/* Rotation Degree Selection */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
-                Rotation Angle (Clockwise)
-              </label>
-              <div className="grid grid-cols-3 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setRotationAngle(90)}
-                  className={`p-3 rounded-lg border text-center transition-all ${
-                    rotationAngle === 90
-                      ? 'border-red-600 bg-red-50/20 text-slate-900 ring-1 ring-red-600 font-semibold'
-                      : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
-                  }`}
-                >
-                  <RotateCw className="w-5 h-5 mx-auto mb-1 text-slate-600" />
-                  <span className="text-sm">90° Right</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setRotationAngle(180)}
-                  className={`p-3 rounded-lg border text-center transition-all ${
-                    rotationAngle === 180
-                      ? 'border-red-600 bg-red-50/20 text-slate-900 ring-1 ring-red-600 font-semibold'
-                      : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
-                  }`}
-                >
-                  <RotateCw className="w-5 h-5 mx-auto mb-1 text-slate-600 rotate-90" />
-                  <span className="text-sm">180° Upside Down</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setRotationAngle(270)}
-                  className={`p-3 rounded-lg border text-center transition-all ${
-                    rotationAngle === 270
-                      ? 'border-red-600 bg-red-50/20 text-slate-900 ring-1 ring-red-600 font-semibold'
-                      : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
-                  }`}
-                >
-                  <RotateCcw className="w-5 h-5 mx-auto mb-1 text-slate-600" />
-                  <span className="text-sm">270° (90° Left)</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Target Scope */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
-                Pages to Rotate
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                <button
-                  type="button"
-                  onClick={() => setTargetScope('all')}
-                  className={`p-3 rounded-lg border text-left transition-all ${
-                    targetScope === 'all'
-                      ? 'border-red-600 bg-red-50/20 text-slate-900 ring-1 ring-red-600'
-                      : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
-                  }`}
-                >
-                  <p className="text-xs font-semibold">Rotate Entire Document</p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">All {selectedFile.pageCount} pages will be rotated</p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setTargetScope('specific')}
-                  className={`p-3 rounded-lg border text-left transition-all ${
-                    targetScope === 'specific'
-                      ? 'border-red-600 bg-red-50/20 text-slate-900 ring-1 ring-red-600'
-                      : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
-                  }`}
-                >
-                  <p className="text-xs font-semibold">Select Specific Pages</p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Only rotate certain page numbers or ranges</p>
-                </button>
-              </div>
-
-              {targetScope === 'specific' && (
-                <div>
-                  <label htmlFor="rotatePageInput" className="block text-xs font-medium text-slate-700 mb-1">
-                    Page Numbers to Rotate (e.g. 1, 3, 5-7)
-                  </label>
-                  <input
-                    id="rotatePageInput"
-                    type="text"
-                    value={specificPagesInput}
-                    onChange={(e) => setSpecificPagesInput(e.target.value)}
-                    placeholder="e.g. 1, 3, 5-7"
-                    className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:border-red-600 focus:ring-1 focus:ring-red-600 font-mono outline-hidden"
-                  />
+              <div className="flex gap-6">
+                <span className="text-4xl font-black text-brand-primary/20 tabular-nums">02</span>
+                <div className="space-y-2 pt-2">
+                  <h4 className="font-bold text-text-primary">Choose Direction</h4>
+                  <p className="text-sm text-text-secondary leading-relaxed">
+                    Select the exact angle needed to fix the orientation. All metadata is updated safely.
+                  </p>
                 </div>
-              )}
-            </div>
-
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={handleReset}
-                className="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:text-slate-900 rounded-lg"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleRotate}
-                className="px-6 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-colors"
-              >
-                Apply Rotation
-              </button>
+              </div>
+              <div className="flex gap-6">
+                <span className="text-4xl font-black text-brand-primary/20 tabular-nums">03</span>
+                <div className="space-y-2 pt-2">
+                  <h4 className="font-bold text-text-primary">Download File</h4>
+                  <p className="text-sm text-text-secondary leading-relaxed">
+                    Get your document back with fixed rotation that works across all devices and apps.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-        )}
 
-        <ProcessingCard
-          state={processingState}
-          onReset={handleReset}
-          toolName="rotate"
-        />
-      </div>
-
-      <AdsterraPlacement placementLocation="below-tool" />
-
-      {/* Guide */}
-      <section className="mt-16 space-y-6 text-slate-700">
-        <h2 className="text-xl font-bold text-slate-900">How to Permanently Rotate PDF Pages</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="p-4 bg-white border border-slate-200 rounded-lg text-xs leading-relaxed">
-            <strong className="block text-slate-900 text-sm mb-1">1. Add PDF</strong>
-            Select the document from your files or phone photo scan imports.
-          </div>
-          <div className="p-4 bg-white border border-slate-200 rounded-lg text-xs leading-relaxed">
-            <strong className="block text-slate-900 text-sm mb-1">2. Choose Angle</strong>
-            Select 90 degrees right, 180 degrees upside down, or 270 degrees left.
-          </div>
-          <div className="p-4 bg-white border border-slate-200 rounded-lg text-xs leading-relaxed">
-            <strong className="block text-slate-900 text-sm mb-1">3. Save Output</strong>
-            The rotation tag in the PDF page dictionary is updated directly without re-rasterizing text.
+          <div className="space-y-8">
+            <h2 className="text-3xl font-black tracking-tight text-text-primary">
+              Technical <br />
+              <span className="text-brand-primary">FAQs.</span>
+            </h2>
+            <div className="space-y-4">
+              {ROTATE_TOOL_FAQS.map((faq, idx) => (
+                <div key={idx} className="group p-6 bg-surface-main border border-border-subtle rounded-2xl hover:border-brand-primary/30 transition-colors">
+                  <h3 className="font-bold text-text-primary flex items-center justify-between">
+                    <span>{faq.question}</span>
+                  </h3>
+                  <p className="text-sm text-text-secondary mt-3 leading-relaxed">
+                    {faq.answer}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </section>
+      </div>
 
       <RelatedTools currentPath="/rotate-pdf" navigate={navigate} />
     </div>
   );
 };
+

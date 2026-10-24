@@ -1,6 +1,7 @@
 import { PDFDocument, degrees, PageSizes } from 'pdf-lib';
 import JSZip from 'jszip';
 import type { ImageToPdfOptions } from '../types';
+import { detectImageSignature } from './fileValidation';
 
 export interface SplitResultFile {
   filename: string;
@@ -141,7 +142,7 @@ export async function rotatePdfPages(
  * Converts images (JPEG / PNG / WEBP) to PDF.
  */
 export async function imagesToPdf(
-  images: { buffer: ArrayBuffer; type: 'jpeg' | 'png' | 'webp' }[],
+  images: { buffer: ArrayBuffer; type?: 'jpeg' | 'png' | 'webp' }[],
   options: ImageToPdfOptions
 ): Promise<Uint8Array> {
   if (images.length === 0) {
@@ -152,13 +153,13 @@ export async function imagesToPdf(
 
   for (const imgItem of images) {
     let embeddedImg;
-    if (imgItem.type === 'jpeg') {
+    const detectedType = detectImageSignature(new Uint8Array(imgItem.buffer.slice(0, 12))) || imgItem.type;
+    if (detectedType === 'jpeg') {
       embeddedImg = await doc.embedJpg(imgItem.buffer);
-    } else if (imgItem.type === 'png') {
+    } else if (detectedType === 'png') {
       embeddedImg = await doc.embedPng(imgItem.buffer);
     } else {
-      // WEBP or fallback: convert through an HTML image/canvas in browser or treat as jpg
-      throw new Error(`Direct embedding for ${imgItem.type} is not supported directly; please use JPG or PNG.`);
+      throw new Error(`Unsupported image format. Please supply a valid JPG or PNG image.`);
     }
 
     const { width: imgW, height: imgH } = embeddedImg;

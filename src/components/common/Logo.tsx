@@ -11,50 +11,50 @@ export const Logo: React.FC<LogoProps> = ({
   size = 'md',
   showText = true,
 }) => {
-  const iconSize = size === 'sm' ? 'w-7 h-7' : size === 'lg' ? 'w-10 h-10' : 'w-8 h-8';
-  const textSize = size === 'sm' ? 'text-base' : size === 'lg' ? 'text-xl' : 'text-lg';
+  const iconSize = size === 'sm' ? 'w-8 h-8' : size === 'lg' ? 'w-12 h-12' : 'w-10 h-10';
+  const textSize = size === 'sm' ? 'text-base' : size === 'lg' ? 'text-2xl' : 'text-xl';
 
   return (
-    <div className={`inline-flex items-center gap-2.5 ${className}`}>
-      {/* Custom Geometric PDF Emblem */}
-      <div className={`relative ${iconSize} shrink-0`}>
+    <div className={`inline-flex items-center gap-3 ${className}`}>
+      {/* Premium Monogram Logo */}
+      <div className={`${iconSize} shrink-0`}>
         <svg
-          viewBox="0 0 36 36"
+          viewBox="0 0 40 40"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-full drop-shadow-2xs"
+          className="w-full h-full"
           aria-hidden="true"
         >
-          {/* Back sheet shadow/layer */}
+          {/* Main diamond/square shape */}
           <rect
-            x="8"
+            x="4"
             y="4"
-            width="22"
-            height="28"
-            rx="3.5"
-            className="fill-slate-200"
+            width="32"
+            height="32"
+            rx="4"
+            fill="var(--color-brand-primary)"
+            className="transition-colors duration-300"
           />
-          {/* Front sheet with custom fold */}
+          {/* Stylized P monogram / sheet fold hybrid */}
           <path
-            d="M5 6C5 4.34315 6.34315 3 8 3H21L29 11V30C29 31.6569 27.6569 33 26 33H8C6.34315 33 5 31.6569 5 30V6Z"
-            className="fill-red-600"
+            d="M12 12H24C26.2091 12 28 13.7909 28 16C28 18.2091 26.2091 20 24 20H12V28"
+            stroke="white"
+            strokeWidth="3.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
-          {/* Top-right corner fold */}
           <path
-            d="M21 3L29 11H23C21.8954 11 21 10.1046 21 9V3Z"
-            className="fill-red-700/80"
-          />
-          {/* Clean minimal lightning/quick indicator inside sheet */}
-          <path
-            d="M16 13L12 19H17L15 25L21 17H16.5L18 13H16Z"
-            className="fill-white"
+            d="M12 20H20"
+            stroke="white"
+            strokeWidth="3.5"
+            strokeLinecap="round"
           />
         </svg>
       </div>
 
       {showText && (
-        <span className={`font-bold tracking-tight text-slate-900 ${textSize} select-none`}>
-          PDF Quick<span className="text-red-600">Tools</span>
+        <span className={`font-bold tracking-tight text-text-primary ${textSize} select-none leading-none`}>
+          PDF Quick<span className="text-brand-primary">Tools</span>
         </span>
       )}
     </div>

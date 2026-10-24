@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Layers, ShieldCheck, HelpCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Layers, ShieldCheck, HelpCircle, ArrowLeft, Plus } from 'lucide-react';
 import { FileDropzone } from '../common/FileDropzone';
 import { ReorderableFileList } from '../common/ReorderableFileList';
 import { ProcessingCard } from '../common/ProcessingCard';
@@ -8,10 +8,31 @@ import { AdsterraPlacement } from '../common/AdsterraPlacement';
 import type { FileItem, ProcessingState } from '../../types';
 import { getPdfInfo, mergePdfs } from '../../utils/pdfOperations';
 import { trackEvent } from '../../utils/analytics';
+import { FaqJsonLd, FaqItem } from '../common/FaqJsonLd';
+import { ToolJsonLd } from '../common/ToolJsonLd';
 
 interface ToolProps {
   navigate: (path: string) => void;
 }
+
+const MERGE_TOOL_FAQS: FaqItem[] = [
+  {
+    question: 'Is merging PDFs on this site safe for confidential records?',
+    answer: "Yes. Unlike traditional online converters that upload your tax returns, medical records, or legal contracts to third-party cloud servers, PDF Quick Tools processes all binary files entirely inside your web browser using client-side WebAssembly and JavaScript. No file bits are ever transmitted over the network.",
+  },
+  {
+    question: 'Does merging degrade image quality or compress text?',
+    answer: 'No. The merging engine uses lossless structural stream copying. Fonts, high-resolution photographs, and vector lines remain identical byte-for-byte to your original sources.',
+  },
+  {
+    question: 'Can I reorder pages or documents before merging?',
+    answer: 'Yes. Once files are staged in the list, use drag-and-drop or the keyboard-accessible up and down arrow controls to adjust the exact sequence before generating your merged PDF.',
+  },
+  {
+    question: 'What is the maximum number of PDF files I can merge at once?',
+    answer: 'You can merge up to 30 PDF documents in a single operation, with individual document sizes up to 100MB supported smoothly in memory.',
+  },
+];
 
 export const MergeTool: React.FC<ToolProps> = ({ navigate }) => {
   const [files, setFiles] = useState<FileItem[]>([]);
@@ -24,6 +45,14 @@ export const MergeTool: React.FC<ToolProps> = ({ navigate }) => {
     resultUrl: null,
     resultFilename: null,
   });
+
+  useEffect(() => {
+    return () => {
+      if (processingState.resultUrl) {
+        URL.revokeObjectURL(processingState.resultUrl);
+      }
+    };
+  }, [processingState.resultUrl]);
 
   const handleFilesSelected = async (newFiles: File[]) => {
     const items: FileItem[] = [];
@@ -66,12 +95,16 @@ export const MergeTool: React.FC<ToolProps> = ({ navigate }) => {
       return;
     }
 
+    if (processingState.resultUrl) {
+      URL.revokeObjectURL(processingState.resultUrl);
+    }
+
     trackEvent('processing_started', { tool: 'merge' });
 
     setProcessingState({
       isProcessing: true,
       progress: 20,
-      statusMessage: 'Reading document pages into memory...',
+      statusMessage: 'Reading documents...',
       error: null,
       resultBlob: null,
       resultUrl: null,
@@ -84,7 +117,7 @@ export const MergeTool: React.FC<ToolProps> = ({ navigate }) => {
       setProcessingState((prev) => ({
         ...prev,
         progress: 60,
-        statusMessage: 'Merging document streams and page dictionaries...',
+        statusMessage: 'Compiling PDF streams...',
       }));
 
       const mergedBytes = await mergePdfs(buffers);
@@ -92,7 +125,7 @@ export const MergeTool: React.FC<ToolProps> = ({ navigate }) => {
       setProcessingState((prev) => ({
         ...prev,
         progress: 90,
-        statusMessage: 'Generating final PDF binary...',
+        statusMessage: 'Finalizing binary...',
       }));
 
       const blob = new Blob([mergedBytes.buffer as ArrayBuffer], { type: 'application/pdf' });
@@ -146,154 +179,216 @@ export const MergeTool: React.FC<ToolProps> = ({ navigate }) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
-      {/* Breadcrumb Navigation */}
-      <nav className="flex items-center gap-2 text-xs text-slate-500 mb-6" aria-label="Breadcrumb">
-        <a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }} className="hover:text-slate-900">
-          Home
-        </a>
-        <span aria-hidden="true">/</span>
-        <span className="text-slate-900 font-medium">Merge PDF</span>
-      </nav>
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12 lg:py-20">
+      <ToolJsonLd
+        name="Merge PDF Files Online - PDF Quick Tools"
+        url="https://pdf-quick-tools.vercel.app/merge-pdf"
+        applicationSubCategory="PDF Merger"
+        description="Combine multiple PDF files into one clean document with drag-and-drop reordering. 100% private in-browser processing with zero server uploads."
+        featureList={[
+          "Client-side merging of up to 30 PDF documents",
+          "Accessible drag-and-drop reordering with keyboard controls",
+          "Lossless structural stream copying preserving fonts and vector text",
+          "Zero server uploads: 100% client-side memory privacy",
+          "Supports PDF versions 1.0 through 2.0",
+        ]}
+      />
+      <FaqJsonLd items={MERGE_TOOL_FAQS} />
 
-      {/* Header Title & Intro */}
-      <div className="mb-8">
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-red-50 text-red-700 text-xs font-semibold mb-3">
-          <Layers className="w-3.5 h-3.5" />
-          <span>Document Combiner</span>
+      {/* Navigation & Header */}
+      <div className="flex flex-col items-start gap-8 mb-16">
+        <button 
+          onClick={() => navigate('/')}
+          className="group flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-text-secondary/60 hover:text-brand-primary transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
+          <span>Back to Tools</span>
+        </button>
+
+        <div className="space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/10 text-brand-primary text-[10px] font-black uppercase tracking-[0.2em]">
+            <Layers className="w-3.5 h-3.5" />
+            <span>Document Combiner</span>
+          </div>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-text-primary leading-[1.1]">
+            Merge PDF <br className="hidden sm:block" />
+            <span className="text-brand-primary">Files Online.</span>
+          </h1>
+          <p className="text-base sm:text-lg text-text-secondary max-w-2xl leading-relaxed">
+            Combine multiple PDF documents into a single, professional file in seconds. 
+            All processing happens locally in your browser—your data never leaves your device.
+          </p>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-          Merge PDF Files Online Free
-        </h1>
-        <p className="mt-2 text-sm text-slate-600 max-w-2xl leading-relaxed">
-          Combine two or more PDF documents into a single organized file in seconds. Order your files, review page counts, and download instantly without uploading your files to any third-party server.
-        </p>
       </div>
 
       {/* Main Interactive Workspace */}
-      <div className="space-y-6">
-        {files.length === 0 && !processingState.resultUrl && (
-          <FileDropzone
-            acceptType="pdf"
-            multiple={true}
-            maxFiles={30}
-            onFilesSelected={handleFilesSelected}
-            title="Drop PDF files to merge here"
-            subtitle="Select multiple PDF documents from your computer or phone"
-          />
-        )}
-
-        {files.length > 0 && !processingState.resultUrl && !processingState.isProcessing && (
-          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-6">
-            <ReorderableFileList
-              files={files}
-              onReorder={setFiles}
-              onRemove={handleRemove}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        <div className="lg:col-span-8 space-y-8">
+          {files.length === 0 && !processingState.resultUrl && (
+            <FileDropzone
+              acceptType="pdf"
+              multiple={true}
+              maxFiles={30}
+              onFilesSelected={handleFilesSelected}
             />
+          )}
 
-            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="w-full sm:w-auto">
-                <FileDropzone
-                  acceptType="pdf"
-                  multiple={true}
-                  maxFiles={10}
-                  onFilesSelected={handleFilesSelected}
-                  title="Add More PDFs"
-                  subtitle="Append more files to the list"
-                  className="w-full sm:w-64"
+          {files.length > 0 && !processingState.resultUrl && !processingState.isProcessing && (
+            <div className="space-y-8">
+              <div className="bg-surface-main border border-border-subtle rounded-2xl p-8 shadow-xl shadow-text-primary/5">
+                <ReorderableFileList
+                  files={files}
+                  onReorder={setFiles}
+                  onRemove={handleRemove}
                 />
-              </div>
 
-              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
-                >
-                  Clear All
-                </button>
-                <button
-                  type="button"
-                  onClick={handleMerge}
-                  disabled={files.length < 2}
-                  className="w-full sm:w-auto px-6 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 active:bg-red-800 disabled:opacity-40 disabled:pointer-events-none rounded-lg shadow-sm transition-all"
-                >
-                  Merge {files.length} Files
-                </button>
+                <div className="mt-8 pt-8 border-t border-border-subtle/50 flex flex-col sm:flex-row items-center justify-between gap-6">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      input.multiple = true;
+                      input.accept = '.pdf,application/pdf';
+                      input.onchange = (e) => {
+                        const target = e.target as HTMLInputElement;
+                        if (target.files) handleFilesSelected(Array.from(target.files));
+                      };
+                      input.click();
+                    }}
+                    className="flex items-center gap-2 text-sm font-bold text-brand-primary hover:text-brand-hover transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add more files</span>
+                  </button>
+
+                  <div className="flex items-center gap-4 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={handleReset}
+                      className="flex-1 sm:flex-none h-12 px-6 text-sm font-bold text-text-secondary hover:text-text-primary transition-colors"
+                    >
+                      Clear Queue
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleMerge}
+                      disabled={files.length < 2}
+                      className="flex-1 sm:flex-none h-12 px-10 text-sm font-black uppercase tracking-widest text-white bg-brand-primary hover:bg-brand-hover disabled:opacity-30 disabled:pointer-events-none rounded-full shadow-lg shadow-brand-primary/25 transition-all active:scale-95"
+                    >
+                      Merge Files
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <ProcessingCard
+            state={processingState}
+            onReset={handleReset}
+            toolName="merge"
+          />
+        </div>
+
+        {/* Sidebar / Info */}
+        <div className="lg:col-span-4 space-y-10">
+          <div className="p-8 bg-surface-main border border-border-subtle rounded-2xl space-y-6">
+            <h3 className="text-sm font-black uppercase tracking-widest text-text-primary">
+              Private & Local
+            </h3>
+            <div className="space-y-4">
+              <div className="flex gap-4">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-text-primary">No Uploads</p>
+                  <p className="text-xs text-text-secondary mt-1 leading-relaxed">
+                    Files are processed using client-side WebAssembly. Nothing is ever sent to our servers.
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="w-10 h-10 rounded-xl bg-brand-primary/5 text-brand-primary flex items-center justify-center shrink-0">
+                  <HelpCircle className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-text-primary">Lossless Quality</p>
+                  <p className="text-xs text-text-secondary mt-1 leading-relaxed">
+                    Your document's fonts, vectors, and image clarity are preserved with byte-for-byte accuracy.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        )}
 
-        {/* Processing and Download Card */}
-        <ProcessingCard
-          state={processingState}
-          onReset={handleReset}
-          toolName="merge"
-        />
+          <div className="px-2">
+            <AdsterraPlacement placementLocation="below-tool" />
+          </div>
+        </div>
       </div>
 
-      {/* Optional Adsterra Placement */}
-      <AdsterraPlacement placementLocation="below-tool" />
-
-      {/* Editorial & Technical Guide Section */}
-      <section className="mt-16 space-y-10 text-slate-700">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900 mb-3">How to Merge PDF Files in 3 Simple Steps</h2>
-          <ol className="list-decimal list-inside space-y-2 text-sm leading-relaxed text-slate-600">
-            <li><strong className="text-slate-800">Choose your documents:</strong> Drag and drop your PDFs into the box above or click browse to pick files from your device.</li>
-            <li><strong className="text-slate-800">Organize page order:</strong> Use the up and down arrow buttons to arrange your documents in the exact sequence you want them to appear in the combined file.</li>
-            <li><strong className="text-slate-800">Click Merge:</strong> Our browser engine compiles your documents in memory and provides an instant direct download link.</li>
-          </ol>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-200 text-sm">
-          <div>
-            <h3 className="font-semibold text-slate-900 mb-2">Supported Documents & Specifications</h3>
-            <ul className="space-y-1.5 text-xs text-slate-600">
-              <li>• PDF versions 1.0 through 2.0 (ISO 32000 standard).</li>
-              <li>• Preserves vector text, hyperlinks, fonts, and embedded images.</li>
-              <li>• Up to 30 files per merge session.</li>
-              <li>• Maximum recommended file size: 100MB per document for smooth browser performance.</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-semibold text-slate-900 mb-2">Known Technical Boundaries</h3>
-            <ul className="space-y-1.5 text-xs text-slate-600">
-              <li>• Encrypted or password-locked PDFs must be unlocked before merging.</li>
-              <li>• Form fields with conflicting names across documents will be preserved with isolated appearances.</li>
-              <li>• Zero server retention: your files are never transmitted across the network.</li>
-            </ul>
-          </div>
-        </div>
-
-        {/* FAQs */}
-        <div>
-          <h2 className="text-xl font-bold text-slate-900 mb-4">Frequently Asked Questions</h2>
-          <div className="space-y-4">
-            <div className="border border-slate-200 rounded-lg p-4 bg-white">
-              <h3 className="font-semibold text-sm text-slate-900">Is merging PDFs on this site safe for confidential records?</h3>
-              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                Yes. Unlike traditional online converters that upload your tax returns, medical records, or legal contracts to an Amazon Web Services or foreign cloud server, PDF Quick Tools processes the binary files entirely inside your device's web browser using client-side JavaScript. No file bits are ever transmitted to our server.
-              </p>
-            </div>
-            <div className="border border-slate-200 rounded-lg p-4 bg-white">
-              <h3 className="font-semibold text-sm text-slate-900">Does merging degrade image quality or compress text?</h3>
-              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                No. The merging engine uses lossless structural stream copying. Fonts, high-resolution photographs, and vector lines remain identical byte-for-byte to your original sources.
-              </p>
-            </div>
-            <div className="border border-slate-200 rounded-lg p-4 bg-white">
-              <h3 className="font-semibold text-sm text-slate-900">Can I reorder pages after selecting files?</h3>
-              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                Yes. Once files are staged in the list, use the up and down arrow controls to adjust the order of documents before merging.
-              </p>
+      {/* Guide Section */}
+      <div className="mt-32 pt-20 border-t border-border-subtle">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
+          <div className="space-y-8">
+            <h2 className="text-3xl font-black tracking-tight text-text-primary">
+              The Professional <br />
+              <span className="text-brand-primary">Merging Standard.</span>
+            </h2>
+            <div className="space-y-6">
+              <div className="flex gap-6">
+                <span className="text-4xl font-black text-brand-primary/20 tabular-nums">01</span>
+                <div className="space-y-2 pt-2">
+                  <h4 className="font-bold text-text-primary">Load Documents</h4>
+                  <p className="text-sm text-text-secondary leading-relaxed">
+                    Select up to 30 PDF files. Our engine scans them instantly in-memory to verify integrity.
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-6">
+                <span className="text-4xl font-black text-brand-primary/20 tabular-nums">02</span>
+                <div className="space-y-2 pt-2">
+                  <h4 className="font-bold text-text-primary">Sequence Order</h4>
+                  <p className="text-sm text-text-secondary leading-relaxed">
+                    Arrange files in your preferred order using our intuitive reorder system.
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-6">
+                <span className="text-4xl font-black text-brand-primary/20 tabular-nums">03</span>
+                <div className="space-y-2 pt-2">
+                  <h4 className="font-bold text-text-primary">Generate & Save</h4>
+                  <p className="text-sm text-text-secondary leading-relaxed">
+                    Click merge and receive your single, compiled document instantly.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* Internal Cross Links */}
+          <div className="space-y-8">
+            <h2 className="text-3xl font-black tracking-tight text-text-primary">
+              Common <br />
+              <span className="text-brand-primary">Questions.</span>
+            </h2>
+            <div className="space-y-4">
+              {MERGE_TOOL_FAQS.map((faq, idx) => (
+                <div key={idx} className="group p-6 bg-surface-main border border-border-subtle rounded-2xl hover:border-brand-primary/30 transition-colors">
+                  <h3 className="font-bold text-text-primary flex items-center justify-between">
+                    <span>{faq.question}</span>
+                  </h3>
+                  <p className="text-sm text-text-secondary mt-3 leading-relaxed">
+                    {faq.answer}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <RelatedTools currentPath="/merge-pdf" navigate={navigate} />
     </div>
   );

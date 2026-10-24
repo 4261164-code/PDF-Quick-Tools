@@ -154,15 +154,24 @@ export const LeadCapture: React.FC<LeadCaptureProps> = ({
     }
   };
 
+  // Clean up object URL on unmount to prevent leaks
+  React.useEffect(() => {
+    return () => {
+      if (downloadUrl) {
+        URL.revokeObjectURL(downloadUrl);
+      }
+    };
+  }, [downloadUrl]);
+
   return (
     <div
-      className={`rounded-2xl border border-slate-200 bg-linear-to-b from-white to-slate-50/80 p-6 sm:p-8 shadow-xs ${className}`}
+      className={`rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs ${className}`}
     >
       <div className="max-w-xl mx-auto text-center">
         {!isSuccess ? (
           <>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 text-red-700 text-xs font-semibold mb-4 border border-red-100">
-              <Sparkles className="w-3.5 h-3.5 text-red-600" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-red-50 text-red-700 text-xs font-semibold mb-4 border border-red-200">
+              <Sparkles className="w-3.5 h-3.5 text-red-700" />
               <span>Free Download</span>
             </div>
 
@@ -183,14 +192,14 @@ export const LeadCapture: React.FC<LeadCaptureProps> = ({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email address"
-                  className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg text-slate-900 focus:border-red-600 focus:ring-1 focus:ring-red-600 outline-hidden transition-all shadow-2xs"
+                  className="w-full min-h-[44px] pl-10 pr-4 py-2.5 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg text-slate-900 focus:border-red-700 focus:ring-1 focus:ring-red-700 outline-hidden transition-all shadow-2xs"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-5 py-2.5 text-xs sm:text-sm font-semibold text-white bg-red-600 hover:bg-red-700 active:bg-red-800 disabled:opacity-50 rounded-lg shadow-sm transition-all whitespace-nowrap shrink-0 flex items-center justify-center gap-2"
+                className="min-h-[44px] px-5 py-2.5 text-xs sm:text-sm font-semibold text-white bg-red-700 hover:bg-red-800 active:bg-red-900 disabled:opacity-50 rounded-lg shadow-2xs transition-all whitespace-nowrap shrink-0 flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
               >
                 {isSubmitting ? (
                   <span>Generating PDF...</span>
@@ -204,13 +213,13 @@ export const LeadCapture: React.FC<LeadCaptureProps> = ({
             </form>
 
             <div className="mt-3 flex items-center justify-center gap-2 text-[11px] text-slate-400">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
               <span>No spam. 100% free. Instant PDF download.</span>
             </div>
           </>
         ) : (
           <div className="py-4 space-y-4">
-            <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto shadow-2xs">
+            <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center mx-auto shadow-2xs border border-emerald-200">
               <CheckCircle2 className="w-6 h-6" />
             </div>
 
@@ -225,7 +234,7 @@ export const LeadCapture: React.FC<LeadCaptureProps> = ({
               <a
                 href={downloadUrl}
                 download="PDF_Quick_Tools_Security_Cheat_Sheet.pdf"
-                className="inline-flex items-center gap-2 px-6 py-2.5 text-xs sm:text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-all"
+                className="min-h-[44px] inline-flex items-center justify-center gap-2 px-6 py-2.5 text-xs sm:text-sm font-semibold text-white bg-red-700 hover:bg-red-800 rounded-lg shadow-2xs transition-all focus-visible:outline-2 focus-visible:outline-red-700"
               >
                 <Download className="w-4 h-4" />
                 <span>Download PDF Guide</span>

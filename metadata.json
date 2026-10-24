@@ -1,6 +1,6 @@
 {
   "name": "PDF Quick Tools",
-  "description": "Fast, private, mobile-friendly PDF tools in your browser. Merge, split, compress, convert images, extract pages, and rotate with zero server uploads.",
+  "description": "Merge, split, compress, convert images, extract pages, and rotate PDF files directly in your web browser with 100% privacy and zero server uploads.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

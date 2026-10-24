@@ -1,9 +1,9 @@
 import React from 'react';
-import { ExternalLink, Info } from 'lucide-react';
+import { ExternalLink, Info, Sparkles } from 'lucide-react';
 import { trackEvent } from '../../utils/analytics';
 
 interface AdsterraPlacementProps {
-  placementLocation?: 'below-tool' | 'sidebar' | 'guide-footer';
+  placementLocation?: 'below-tool' | 'sidebar' | 'guide-footer' | 'sidebar-sticky';
   className?: string;
 }
 
@@ -43,20 +43,26 @@ export const AdsterraPlacement: React.FC<AdsterraPlacementProps> = ({
 
   return (
     <aside
-      className={`my-8 p-4 rounded-lg border border-slate-200 bg-slate-50/80 text-xs text-slate-600 transition-colors ${className}`}
+      className={`relative overflow-hidden p-6 sm:p-8 rounded-[2rem] bg-white border border-border-subtle shadow-xl shadow-black/[0.02] transition-all hover:border-brand-primary/20 ${className}`}
       aria-label="Sponsored Content"
     >
-      <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-200/70">
-        <div className="flex items-center gap-1.5 font-medium text-slate-700">
-          <Info className="w-3.5 h-3.5 text-slate-400" />
-          <span className="uppercase tracking-wider text-[11px] font-semibold text-slate-500">Sponsored Resource</span>
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 rounded-lg bg-brand-primary/5 text-brand-primary">
+            <Sparkles className="w-3.5 h-3.5" />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-text-secondary opacity-60">
+            Sponsored Resource
+          </span>
         </div>
-        <span className="text-[10px] text-slate-400">External Partner</span>
+        <div className="px-2 py-0.5 rounded-full border border-border-subtle bg-surface-bg text-[9px] font-bold text-text-secondary opacity-40 uppercase tracking-widest">
+          Partner
+        </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <p className="text-slate-600 leading-relaxed max-w-xl">
-          Support PDF Quick Tools by discovering featured cloud productivity, business software, and utility partner offers.
+      <div className="space-y-6">
+        <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
+          Support our commitment to free, private PDF utilities by exploring curated software and cloud productivity tools from our verified partners.
         </p>
 
         <a
@@ -64,12 +70,16 @@ export const AdsterraPlacement: React.FC<AdsterraPlacementProps> = ({
           target="_blank"
           rel="sponsored noopener noreferrer"
           onClick={handleClick}
-          className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-md font-medium text-slate-800 bg-white hover:bg-slate-100 border border-slate-300 shadow-2xs transition-colors whitespace-nowrap shrink-0 group"
+          className="min-h-[44px] w-full inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full font-bold text-xs text-text-primary bg-surface-main hover:bg-surface-bg border border-border-subtle transition-all group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary"
         >
-          <span>Visit Partner Site</span>
-          <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 transition-colors" />
+          <span>Explore Partner Offer</span>
+          <ExternalLink className="w-3.5 h-3.5 text-text-secondary group-hover:text-brand-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
         </a>
       </div>
+
+      {/* Subtle Background Accent */}
+      <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-brand-primary/5 rounded-full blur-2xl pointer-events-none" />
     </aside>
   );
 };
+

@@ -1,77 +1,77 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://pdfquicktools.com/</loc>
+    <loc>https://pdf-quick-tools.vercel.app/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://pdfquicktools.com/merge-pdf</loc>
+    <loc>https://pdf-quick-tools.vercel.app/merge-pdf</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://pdfquicktools.com/split-pdf</loc>
+    <loc>https://pdf-quick-tools.vercel.app/split-pdf</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://pdfquicktools.com/compress-pdf</loc>
+    <loc>https://pdf-quick-tools.vercel.app/compress-pdf</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://pdfquicktools.com/image-to-pdf</loc>
+    <loc>https://pdf-quick-tools.vercel.app/image-to-pdf</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://pdfquicktools.com/extract-pdf-pages</loc>
+    <loc>https://pdf-quick-tools.vercel.app/extract-pdf-pages</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pdfquicktools.com/rotate-pdf</loc>
+    <loc>https://pdf-quick-tools.vercel.app/rotate-pdf</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pdfquicktools.com/pdf-guides</loc>
+    <loc>https://pdf-quick-tools.vercel.app/pdf-guides</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pdfquicktools.com/pdf-guides/how-to-merge-pdf-files</loc>
+    <loc>https://pdf-quick-tools.vercel.app/pdf-guides/how-to-merge-pdf-files</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pdfquicktools.com/pdf-guides/how-to-compress-a-pdf</loc>
+    <loc>https://pdf-quick-tools.vercel.app/pdf-guides/how-to-compress-a-pdf</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pdfquicktools.com/pdf-guides/how-to-split-a-pdf</loc>
+    <loc>https://pdf-quick-tools.vercel.app/pdf-guides/how-to-split-a-pdf</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pdfquicktools.com/privacy</loc>
+    <loc>https://pdf-quick-tools.vercel.app/privacy</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://pdfquicktools.com/terms</loc>
+    <loc>https://pdf-quick-tools.vercel.app/terms</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://pdfquicktools.com/advertising-disclosure</loc>
+    <loc>https://pdf-quick-tools.vercel.app/advertising-disclosure</loc>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://pdfquicktools.com/contact</loc>
+    <loc>https://pdf-quick-tools.vercel.app/contact</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>

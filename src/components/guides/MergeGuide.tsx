@@ -1,8 +1,9 @@
 import React from 'react';
-import { Layers, ArrowRight, ShieldCheck, CheckCircle2, HelpCircle } from 'lucide-react';
+import { Layers, ArrowRight, ShieldCheck, CheckCircle2, HelpCircle, BookOpen, Clock, Calendar, Tag } from 'lucide-react';
 import { AdsterraPlacement } from '../common/AdsterraPlacement';
 import { RelatedTools } from '../common/RelatedTools';
 import { FaqJsonLd, FaqItem } from '../common/FaqJsonLd';
+import { HowToJsonLd, HowToStep } from '../common/HowToJsonLd';
 
 interface GuideProps {
   navigate: (path: string) => void;
@@ -27,6 +28,24 @@ const MERGE_FAQS: FaqItem[] = [
   },
 ];
 
+const MERGE_STEPS: HowToStep[] = [
+  {
+    name: 'Stage Your Source Files',
+    text: 'Navigate to the Merge PDF tool, then drag and drop your PDF files into the upload box or click Browse Device Files.',
+    url: 'https://pdf-quick-tools.vercel.app/merge-pdf',
+  },
+  {
+    name: 'Set Document Sequence',
+    text: 'Review the staged file list and use the up and down arrow buttons or drag handles to organize documents in the exact order you want.',
+    url: 'https://pdf-quick-tools.vercel.app/merge-pdf',
+  },
+  {
+    name: 'Merge and Download',
+    text: 'Click the Merge button to combine documents in your browser memory within milliseconds and download your final PDF instantly.',
+    url: 'https://pdf-quick-tools.vercel.app/merge-pdf',
+  },
+];
+
 export const MergeGuide: React.FC<GuideProps> = ({ navigate }) => {
   const handleNav = (path: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -35,125 +54,219 @@ export const MergeGuide: React.FC<GuideProps> = ({ navigate }) => {
   };
 
   return (
-    <article className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
-      {/* Dynamic Schema.org FAQPage JSON-LD */}
-      <FaqJsonLd items={MERGE_FAQS} />
+    <div className="bg-surface-bg min-h-screen">
+      <article className="max-w-4xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
+        {/* Dynamic Schema.org FAQPage & HowTo JSON-LD for AEO */}
+        <FaqJsonLd items={MERGE_FAQS} />
+        <HowToJsonLd
+          name="How to Merge PDF Files Online"
+          description="Step-by-step instructions on combining multiple PDF documents securely in your browser without file uploads."
+          steps={MERGE_STEPS}
+        />
 
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-xs text-slate-500 mb-6" aria-label="Breadcrumb">
-        <a href="/" onClick={(e) => handleNav('/', e)} className="hover:text-slate-900">
-          Home
-        </a>
-        <span aria-hidden="true">/</span>
-        <a href="/pdf-guides" onClick={(e) => handleNav('/pdf-guides', e)} className="hover:text-slate-900">
-          PDF Guides
-        </a>
-        <span aria-hidden="true">/</span>
-        <span className="text-slate-900 font-medium">How to Merge PDF Files</span>
-      </nav>
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-text-secondary mb-12" aria-label="Breadcrumb">
+          <a href="/" onClick={(e) => handleNav('/', e)} className="hover:text-brand-primary transition-colors">
+            Home
+          </a>
+          <span className="opacity-30">/</span>
+          <a href="/pdf-guides" onClick={(e) => handleNav('/pdf-guides', e)} className="hover:text-brand-primary transition-colors">
+            Knowledge Base
+          </a>
+          <span className="opacity-30">/</span>
+          <span className="text-brand-primary">Merge Protocol</span>
+        </nav>
 
-      {/* Header */}
-      <header className="mb-8 pb-6 border-b border-slate-200">
-        <div className="flex items-center gap-2 text-xs text-slate-500 mb-3">
-          <span>Organization</span>
-          <span aria-hidden="true">·</span>
-          <span>4 min read</span>
-          <span aria-hidden="true">·</span>
-          <span>Updated October 2026</span>
-        </div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 leading-tight">
-          How to Merge Multiple PDF Files into One Document Without Quality Loss
-        </h1>
-        <p className="mt-3 text-sm text-slate-600 leading-relaxed">
-          A definitive, step-by-step technical guide on combining PDF documents, retaining form inputs and vector typography, and keeping data private using client-side merging.
-        </p>
-      </header>
-
-      {/* Direct CTA to tool */}
-      <div className="my-6 p-4 rounded-xl bg-red-50/70 border border-red-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-sm font-semibold text-slate-900">Ready to combine your files right now?</h2>
-          <p className="text-xs text-slate-600 mt-0.5">Use our free zero-upload Merge PDF tool. Runs 100% in your browser.</p>
-        </div>
-        <a
-          href="/merge-pdf"
-          onClick={(e) => handleNav('/merge-pdf', e)}
-          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold text-white bg-red-600 hover:bg-red-700 shadow-sm transition-colors whitespace-nowrap shrink-0"
-        >
-          <span>Open Merge Tool</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </a>
-      </div>
-
-      {/* Body Content */}
-      <div className="space-y-6 text-sm text-slate-700 leading-relaxed">
-        <h2 className="text-lg font-bold text-slate-900 mt-8">Why Do We Need to Merge PDFs?</h2>
-        <p>
-          Whether submitting a mortgage dossier, organizing tax receipts, assembling legal briefs, or putting together an academic dissertation with supplementary charts, multi-file fragmentation causes administrative headaches. Merging binds related documents into a single sequential index that any PDF viewer on Windows, macOS, iOS, or Android can open predictably.
-        </p>
-
-        <h2 className="text-lg font-bold text-slate-900 mt-8">The Traditional Security Risk of Online Converters</h2>
-        <p>
-          Historically, online PDF mergers required uploading your confidential documents to an unfamiliar remote web server. Once your PDF leaves your computer:
-        </p>
-        <ul className="list-disc list-inside space-y-1.5 text-xs text-slate-600 pl-2">
-          <li>Your file can be temporarily or indefinitely cached on cloud disk volumes.</li>
-          <li>Sensitive personally identifiable information (SSNs, banking records, health data) may be exposed to server-side logging.</li>
-          <li>Network transmission delays bottleneck large files.</li>
-        </ul>
-        <p>
-          With modern web technologies like WebAssembly and browser ArrayBuffers, merging no longer requires server mediation. <strong>PDF Quick Tools</strong> executes the entire ISO 32000 page dictionary duplication on your device's CPU.
-        </p>
-
-        <h2 className="text-lg font-bold text-slate-900 mt-8">Step-by-Step Instructions</h2>
-        <div className="space-y-3">
-          <div className="p-4 bg-white border border-slate-200 rounded-lg">
-            <h3 className="font-semibold text-slate-900 text-sm">Step 1: Stage Your Source Files</h3>
-            <p className="text-xs text-slate-600 mt-1">
-              Navigate to the <a href="/merge-pdf" onClick={(e) => handleNav('/merge-pdf', e)} className="text-red-600 hover:underline font-medium">Merge PDF tool</a>. Drag your PDF files into the upload area, or click "Browse Device Files" to multi-select.
-            </p>
-          </div>
-          <div className="p-4 bg-white border border-slate-200 rounded-lg">
-            <h3 className="font-semibold text-slate-900 text-sm">Step 2: Set the Document Sequence</h3>
-            <p className="text-xs text-slate-600 mt-1">
-              Verify the order of documents in the staged list. Use the up and down arrow buttons to ensure cover letters precede attachments and invoices precede receipts.
-            </p>
-          </div>
-          <div className="p-4 bg-white border border-slate-200 rounded-lg">
-            <h3 className="font-semibold text-slate-900 text-sm">Step 3: Trigger Merge & Download</h3>
-            <p className="text-xs text-slate-600 mt-1">
-              Click the "Merge Files" button. Within hundreds of milliseconds, the page catalogs are stitched together and your compiled PDF is ready for immediate saving.
-            </p>
-          </div>
-        </div>
-
-        <h2 className="text-lg font-bold text-slate-900 mt-8">Frequently Encountered Edge Cases</h2>
-        <div className="space-y-2 text-xs text-slate-600">
-          <p>• <strong>Password-Protected Files:</strong> If any source PDF has an active user or owner encryption key, the merge engine cannot read page trees without the credentials. Unlock the file first.</p>
-          <p>• <strong>Differing Page Orientations:</strong> If you combine an A4 portrait report with a landscape spreadsheet, both dimensions are preserved exactly. PDF viewers adapt seamlessly per page.</p>
-          <p>• <strong>Vector Sharpness:</strong> Our client merger copies exact byte streams rather than rasterizing to pixels, ensuring text stays crisp at 500% zoom.</p>
-        </div>
-
-        {/* FAQ Section */}
-        <div className="mt-12 pt-8 border-t border-slate-200">
-          <div className="flex items-center gap-2 mb-4">
-            <HelpCircle className="w-5 h-5 text-red-600" />
-            <h2 className="text-xl font-bold text-slate-900">Frequently Asked Questions</h2>
-          </div>
-
-          <div className="space-y-3">
-            {MERGE_FAQS.map((faq, idx) => (
-              <div key={idx} className="p-4 bg-white border border-slate-200 rounded-xl">
-                <h3 className="text-sm font-semibold text-slate-900 mb-1.5">{faq.question}</h3>
-                <p className="text-xs text-slate-600 leading-relaxed">{faq.answer}</p>
+        {/* Hero Header */}
+        <header className="mb-16 space-y-8">
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-6 text-[10px] font-bold text-text-secondary uppercase tracking-widest opacity-60">
+              <div className="flex items-center gap-2">
+                <Tag className="w-3.5 h-3.5 text-brand-primary" />
+                <span>Organization</span>
               </div>
-            ))}
+              <div className="flex items-center gap-2">
+                <Clock className="w-3.5 h-3.5 text-brand-primary" />
+                <span>4 min read</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Calendar className="w-3.5 h-3.5 text-brand-primary" />
+                <span>Updated Oct 2026</span>
+              </div>
+            </div>
+            
+            <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-text-primary leading-[1.15] lg:max-w-[30ch]">
+              How to Merge PDF Files into a Unified Document Without Quality Loss
+            </h1>
+            
+            <p className="text-lg sm:text-xl text-text-secondary leading-relaxed max-w-3xl border-l-2 border-brand-primary/20 pl-6 py-1">
+              A definitive technical guide on combining PDF documents, retaining form inputs and vector typography, and keeping data private using client-side merging.
+            </p>
           </div>
-        </div>
-      </div>
+        </header>
 
-      <AdsterraPlacement placementLocation="guide-footer" />
-      <RelatedTools currentPath="/pdf-guides/how-to-merge-pdf-files" navigate={navigate} />
-    </article>
+        {/* Direct CTA to tool */}
+        <div className="mb-16 p-8 rounded-[2rem] bg-white border border-border-subtle shadow-xl shadow-black/[0.02] flex flex-col md:flex-row md:items-center justify-between gap-8">
+          <div className="space-y-2">
+            <h2 className="text-xl font-bold text-text-primary">Ready to combine your files?</h2>
+            <p className="text-sm text-text-secondary">Execute the merge protocol instantly in your browser sandbox.</p>
+          </div>
+          <a
+            href="/merge-pdf"
+            onClick={(e) => handleNav('/merge-pdf', e)}
+            className="min-h-[52px] px-8 py-3 text-sm font-bold text-white bg-brand-primary hover:bg-brand-hover active:scale-95 rounded-full transition-all shadow-lg shadow-brand-primary/25 inline-flex items-center gap-3 whitespace-nowrap shrink-0"
+          >
+            <span>Launch Merge Tool</span>
+            <ArrowRight className="w-4 h-4" />
+          </a>
+        </div>
+
+        {/* Article Body */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+          {/* Main Content */}
+          <div className="lg:col-span-8 space-y-12 text-text-secondary leading-relaxed">
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold text-text-primary">The Case for Document Consolidation</h2>
+              <p>
+                Whether submitting a mortgage dossier, organizing tax receipts, or assembling legal briefs, multi-file fragmentation causes administrative friction. Merging binds related documents into a single sequential index that any PDF viewer can open predictably.
+              </p>
+            </section>
+
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold text-text-primary">Security Architecture: Client vs. Cloud</h2>
+              <p>
+                Historically, online PDF mergers required uploading confidential documents to remote servers. Once your PDF leaves your machine, you lose control over data retention and access logs.
+              </p>
+              <div className="p-8 bg-surface-main border border-border-subtle rounded-3xl space-y-4">
+                <div className="flex items-center gap-3 text-brand-primary font-bold text-sm">
+                  <ShieldCheck className="w-5 h-5" />
+                  Local Sandbox Execution
+                </div>
+                <p className="text-sm">
+                  PDF Quick Tools utilizes WebAssembly and browser ArrayBuffers to execute the entire ISO 32000 page dictionary duplication on your device's CPU. Your files never touch a remote server.
+                </p>
+              </div>
+            </section>
+
+            <section className="space-y-8">
+              <h2 className="text-2xl font-bold text-text-primary">Operational Workflow</h2>
+              <div className="space-y-4">
+                {[
+                  {
+                    step: "01",
+                    title: "Source Staging",
+                    desc: "Drag your PDF files into the workspace. Our engine initializes the PDF object tree in memory without persistent storage."
+                  },
+                  {
+                    step: "02",
+                    title: "Sequence Logic",
+                    desc: "Organize documents using the visual reorder handles. The final output follows this exact chronological order."
+                  },
+                  {
+                    step: "03",
+                    title: "Catalyst Execution",
+                    desc: "Trigger the merge. Within milliseconds, the cross-reference tables are unified and the document is ready for local download."
+                  }
+                ].map((item, i) => (
+                  <div key={i} className="flex gap-6 p-6 rounded-2xl hover:bg-white transition-colors group">
+                    <span className="text-2xl font-black text-brand-primary/20 group-hover:text-brand-primary transition-colors font-mono">
+                      {item.step}
+                    </span>
+                    <div className="space-y-1">
+                      <h3 className="font-bold text-text-primary">{item.title}</h3>
+                      <p className="text-sm">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold text-text-primary">Edge Case Management</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-6 border border-border-subtle rounded-2xl space-y-2">
+                  <h4 className="font-bold text-text-primary text-sm flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    Mixed Orientations
+                  </h4>
+                  <p className="text-xs">Portrait and landscape pages coexist seamlessly in the unified output.</p>
+                </div>
+                <div className="p-6 border border-border-subtle rounded-2xl space-y-2">
+                  <h4 className="font-bold text-text-primary text-sm flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    Vector Integrity
+                  </h4>
+                  <p className="text-xs">Original byte streams are copied, ensuring zero loss in text or vector sharpness.</p>
+                </div>
+              </div>
+            </section>
+
+            {/* FAQ Section */}
+            <section className="pt-16 border-t border-border-subtle space-y-8">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-brand-primary flex items-center justify-center">
+                  <HelpCircle className="w-6 h-6 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-text-primary">Frequently Asked Questions</h2>
+              </div>
+
+              <div className="space-y-4">
+                {MERGE_FAQS.map((faq, idx) => (
+                  <div key={idx} className="p-8 bg-white border border-border-subtle rounded-3xl space-y-3 shadow-sm">
+                    <h3 className="text-base font-bold text-text-primary">{faq.question}</h3>
+                    <p className="text-sm leading-relaxed">{faq.answer}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          {/* Sidebar */}
+          <aside className="lg:col-span-4 space-y-8">
+            <div className="sticky top-24 space-y-8">
+              <div className="p-8 rounded-[2rem] bg-text-primary text-white space-y-6 overflow-hidden relative group">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+                  <Layers className="w-24 h-24" />
+                </div>
+                <div className="relative z-10 space-y-4">
+                  <h3 className="text-xl font-bold">Merge Engine</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-xs border-b border-white/10 pb-2">
+                      <span className="opacity-60 uppercase tracking-widest font-bold">Protocol</span>
+                      <span className="font-mono">ISO 32000</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs border-b border-white/10 pb-2">
+                      <span className="opacity-60 uppercase tracking-widest font-bold">Latency</span>
+                      <span className="font-mono text-emerald-400">&lt; 100ms</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs border-b border-white/10 pb-2">
+                      <span className="opacity-60 uppercase tracking-widest font-bold">Data Privacy</span>
+                      <span className="font-mono text-brand-primary uppercase">Guaranteed</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => navigate('/merge-pdf')}
+                    className="w-full py-3 bg-white text-text-primary rounded-full text-sm font-bold hover:bg-brand-primary hover:text-white transition-all"
+                  >
+                    Start Merging
+                  </button>
+                </div>
+              </div>
+
+              <AdsterraPlacement placementLocation="sidebar-sticky" />
+            </div>
+          </aside>
+        </div>
+
+        <div className="mt-24 pt-16 border-t border-border-subtle">
+          <RelatedTools currentPath="/pdf-guides/how-to-merge-pdf-files" navigate={navigate} />
+        </div>
+        
+        <div className="mt-16">
+          <AdsterraPlacement placementLocation="guide-footer" />
+        </div>
+      </article>
+    </div>
   );
 };
+
